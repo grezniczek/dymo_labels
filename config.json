@@ -1,0 +1,70 @@
+{
+    "name": "DYMO Labels",
+    "tt_name": "module_name",
+    "namespace": "RUB\\DYMOLabelsExternalModule",
+    "description": "An external module integrating DYMO label printers with REDCap.",
+    "tt_description": "module_desc",
+    "documentation": "README.md",
+    "tt_documentation": "module_docs",
+    "authors": [
+        {
+            "name": "Günther Rezniczek",
+            "email": "guenther.rezniczek@rub.de",
+            "institution": "Ruhr-Universität Bochum"
+        }
+    ],
+    "framework-version": 3,
+    "permissions": [
+        "redcap_module_project_enable"
+    ],
+    "enable-every-page-hooks-on-system-pages": true,
+    "links": {
+        "project": [
+            {
+                "id": "integrated",
+                "name": "DYMO Labels",
+                "tt_name": "link_name",
+                "icon": "fas fa-tags",
+                "url": "integrated.php",
+                "show-header-and-footer": true
+            },
+            {
+                "id": "public",
+                "name": "DYMO Labels (Public)",
+                "url": "public.php?NOAUTH"
+            }
+        ]
+    },
+    "no-auth-pages": [
+        "public"
+    ],
+    "system-settings": [
+        {
+            "key": "system-allow-anonymous",
+            "name": "Allow anonymous access to the public plugin page",
+            "tt_name": "config_allowanonymous",
+            "type": "checkbox"
+        },
+        {
+            "key": "system-management-project",
+            "name": "<b>Management Project:</b><br>The project id of the project to manage labels and permissions",
+            "tt_name": "config_managementpid",
+            "type": "project-id",
+            "required": true
+        }
+    ],
+    "project-settings": [
+        {
+            "key": "project-showlink",
+            "name": "Show the plugin-page link",
+            "tt_name": "config_showlink",
+            "type": "checkbox"
+        }
+    ],
+    "compatibility": {
+        "php-version-min": "5.6.0",
+        "php-version-max": "",
+        "redcap-version-min": "9.5.0",
+        "redcap-version-max": ""
+     }
+}
