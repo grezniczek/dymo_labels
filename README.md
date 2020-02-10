@@ -1,23 +1,20 @@
-# Localization Demo
+# DYMO Labels
 
-A REDCap External Module demonstrating EM localization.
+An external module integrating DYMO label printers with REDCap.
 
 ## Requirements
 
-- REDCAP 9.5.0 or newer (tested with REDCap 9.7.0).
+- REDCAP 9.5.0 or newer (tested with REDCap 9.7.2).
 
 ## Installation
 
-- Clone this repo into `<redcap-root>/modules/localization_demo_v<version-number>`.
-- Go to _Control Center > Technical / Developer Tools > External Modules_ and enable Localization Demo.
+- Clone this repo into `<redcap-root>/modules/dymo_labels_v<version-number>`.
+- Go to _Control Center > Technical / Developer Tools > External Modules_ and enable DYMO Labels.
 
 ## Configuration
 
-- **System:** Set the text of a message and how it should be logged to the browser's console (info, warning, error).
-- **Project:** Set a number for the module to count up to when requested.
+## Action Tags
 
 ## Effect
 
-When enabled, it outputs some stuff -depending on the settings- to the browser's console, and provides a plugin page.
-
-Have fun!
+Provides action tags and plugin pages to facilitate printing of labels using DYMO LabelWriter printers.
