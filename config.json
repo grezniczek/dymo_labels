@@ -15,7 +15,8 @@
     ],
     "framework-version": 3,
     "permissions": [
-        "redcap_module_project_enable"
+        "redcap_module_project_enable",
+        "redcap_save_record"
     ],
     "enable-every-page-hooks-on-system-pages": true,
     "links": {
