@@ -1,15 +1,18 @@
 <?php
-
 namespace RUB\DYMOLabelsExternalModule;
 
+require "ProjectStructure.php";
+
+
 use ExternalModules\AbstractExternalModule;
+
 
 /**
  * Provides an integration of DYMO LabelWriter printers with REDCap.
  */
 class DYMOLabelsExternalModule extends AbstractExternalModule {
 
-    const MANAGEMENT_LABEL_INSTRUMENT = "dymo_label";
+    const MANAGEMENT_LABELFILE_INSTRUMENT = "label_file";
 
     public static function read_label_file($edoc_id) {
         $contents = null;
@@ -32,7 +35,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
         // Is the record being saved in the DYMO Label management project?
         $management_pid = $fw->getSystemSetting("system-management-project");
-        if ($project_id != $management_pid || $instrument != self::MANAGEMENT_LABEL_INSTRUMENT) return;
+        if ($project_id != $management_pid || $instrument != self::MANAGEMENT_LABELFILE_INSTRUMENT) return;
 
         // Process the label file.
         // Get the record data.
@@ -79,6 +82,8 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         // Get stored object data.
         $fields = array ("record_id", "obj_id", "obj_type", "obj_imggen", "obj_default");
         $rawdata = \REDCap::getData($project_id, "array", $record, $fields, $event_id, null, null, null, null, "[obj_id]<>''");
+
+        $projStructure = new \RCT\SystemInformation\ProjectStructure($this, $project_id);
 
         // should get all fields for instrument with obj_name on it.
         // then, get all data for these fields (and probably log just to be sure not to lose anything)
