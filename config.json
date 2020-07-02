@@ -1,7 +1,7 @@
 {
     "name": "DYMO Labels",
     "tt_name": "module_name",
-    "namespace": "RUB\\DYMOLabelsExternalModule",
+    "namespace": "DE\\RUB\\DYMOLabelsExternalModule",
     "description": "An external module integrating DYMO label printers with REDCap.",
     "tt_description": "module_desc",
     "documentation": "README.md",

@@ -1,5 +1,4 @@
-<?php 
-namespace RCT\SystemInformation;
+<?php namespace DE\RUB\DYMOLabelsExternalModule;
 
 use Exception;
 
