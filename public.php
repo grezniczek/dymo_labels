@@ -1,6 +1,7 @@
 <?php
-
+/** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
 $fw = $module->framework;
+
 // Check whether anonymous access is allowed.
 if (!$fw->getSystemSetting("system-allow-anonymous")) {
     // It's not.

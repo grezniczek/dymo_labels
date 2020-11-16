@@ -1,7 +1,8 @@
 <?php
-/** @var \ExternalModules\Framework */
+/** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
 $fw = $module->framework;
 $pid = $fw->getProjectId();
+$js_includes = array ($fw->getUrl("js/bs-custom-file-input.min.js"));
 
 // Get a list of available label files.
 $mpid = $fw->getSystemSetting("system-management-project");
@@ -31,9 +32,22 @@ foreach ($record_ids as $record_id) {
 
 ?>
 <h3>DYMO LabelWriter Integration</h3>
-<p>
-    Coming soon ...
-</p>
+<form>
+<div class="custom-file">
+  <input type="file" class="custom-file-input" id="customFile">
+  <label class="custom-file-label" for="customFile">Choose file</label>
+</div>
+</form>
 <pre>
     <?=print_r($labels)?>
 </pre>
+<?php 
+foreach ($js_includes as $js) {
+    print "<script src=\"{$js}\"></script>";
+}
+?>
+<script>
+    $(document).ready(function () {
+        bsCustomFileInput.init()
+    })
+</script>
