@@ -1,12 +1,17 @@
 <?php
 /** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
+
+use DE\RUB\REDCapEMLib\Project;
+
+if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Record.php");
+
 $fw = $module->framework;
 $pid = $fw->getProjectId();
 $js_includes = array ($fw->getUrl("js/bs-custom-file-input.min.js"));
 
 // Get a list of available label files.
 $mpid = $fw->getSystemSetting("system-management-project");
-$mp = $fw->getProject2($mpid);
+$mp = Project::get($fw, $mpid);
 $record_ids = $mp->getRecordIds("[integrated]<>'disabled'");
 $labels = array();
 foreach ($record_ids as $record_id) {

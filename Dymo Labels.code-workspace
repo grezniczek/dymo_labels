@@ -4,6 +4,10 @@
 			"path": "."
 		},
 		{
+			"name": "redcap_emlib",
+			"path": "..\\..\\..\\libs\\redcap_emlib"
+		},
+		{
 			"path": "..\\..\\external_modules",
 			"name": "EM Framework"
 		},
