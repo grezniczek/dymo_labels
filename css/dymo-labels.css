@@ -1,0 +1,7 @@
+.dymo-labels-container {
+    max-width: 800px;
+}
+
+select[name=dymo-labels_length] {
+    width:60px !important;
+}
