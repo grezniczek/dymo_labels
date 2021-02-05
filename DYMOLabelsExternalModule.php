@@ -121,4 +121,56 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         }
     }
 
+
+
+
+     /**
+      * Includes a CSS file (either in-line or as a separate resource).
+      * @param string $name The path of the CSS file relative to the module folder.
+      * @param bool $inline Determines whether the styles will be inlined or loaded as a separate resource.
+     */
+    function includeCSS($name, $inline = false) {
+        
+        if ($inline) {
+            $css = file_get_contents(__DIR__ . DS . $name);
+            echo "<style>\n$css\n</style>\n";
+        }
+        else {
+            $css = $this->framework->getUrl($name);
+            $name = md5($name);
+            echo "<script type=\"text/javascript\">
+                    (function() {
+                        var id = 'babel_css_$name'
+                        if (!document.getElementById(id)) {
+                            var head = document.getElementsByTagName('head')[0]
+                            var link = document.createElement('link')
+                            link.id = id
+                            link.rel = 'stylesheet'
+                            link.type = 'text/css'
+                            link.href = '$css'
+                            link.media = 'all'
+                            head.appendChild(link)
+                        }
+                    })();
+                </script>";
+        }
+    }
+
+    /**
+     * Includes a JS file (either in-line or as a separate resource).
+     * @param string $name The path of the JS file relative to the module folder.
+     * @param bool $inline Determines whether the code will be inlined or loaded as a separate resource.
+     */
+    function includeJS($name, $inline = false) {
+        
+        if ($inline) {
+            $js = file_get_contents(__DIR__ . DS . $name);
+            echo "<script type=\"text/javascript\">\n$js\n</script>\n";
+        }
+        else {
+            $js = $this->framework->getUrl($name);
+            echo "<script type=\"text/javascript\" src=\"$js\"></script>";
+        }
+    }
+
 }
