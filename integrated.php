@@ -7,7 +7,12 @@ if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Record.
 
 $fw = $module->framework;
 $pid = $fw->getProjectId();
-$js_includes = array ($fw->getUrl("js/bs-custom-file-input.min.js"));
+
+$module->includeCSS("css/dymo-labels.css");
+$module->includeCSS("css/datatables.min.css");
+$module->includeJS("js/datatables.min.js");
+
+
 
 // Get a list of available label files.
 $mpid = $fw->getSystemSetting("system-management-project");
@@ -36,23 +41,34 @@ foreach ($record_ids as $record_id) {
 }
 
 ?>
-<h3>DYMO LabelWriter Integration</h3>
-<form>
-<div class="custom-file">
-  <input type="file" class="custom-file-input" id="customFile">
-  <label class="custom-file-label" for="customFile">Choose file</label>
+<div class="dymo-labels-container">
+    <h3>DYMO Labels</h3>
+
+    <table id="dymo-labels" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">1</th>
+                <td>AX2C</td>
+                <td>
+                    A quite long label name
+                </td>
+                <td>
+                    Configure | View | Remove
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
-</form>
-<pre>
-    <?=print_r($labels)?>
-</pre>
-<?php 
-foreach ($js_includes as $js) {
-    print "<script src=\"{$js}\"></script>";
-}
-?>
 <script>
-    $(document).ready(function () {
-        bsCustomFileInput.init()
+    $(function() {
+        $('#dymo-labels').DataTable();
     })
 </script>
