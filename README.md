@@ -13,7 +13,23 @@ An external module integrating DYMO label printers with REDCap.
 
 ## Configuration
 
+Via "DYMO Labels" link in the left-side menu.
+
+- Add
+- Remove
+- Configure
+- View / Ad-hoc Print
+- Duplicate
+
+Congifure = 
+- transformation actions (DM, QR, upper/lower case, prefix/suffix, show/hide)
+- default number of copies
+- widget style (text, image, both)
+
 ## Action Tags
+
+@DYMO-LABEL="id"
+Adds a widget to the label portion that, when clicked, initiates printing of a label (shows a preview).
 
 ## Effect
 
