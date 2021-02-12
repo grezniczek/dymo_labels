@@ -21,7 +21,8 @@ Via "DYMO Labels" link in the left-side menu.
 - View / Ad-hoc Print
 - Duplicate
 
-Congifure = 
+Congifure =
+
 - transformation actions (DM, QR, upper/lower case, prefix/suffix, show/hide)
 - default number of copies
 - widget style (text, image, both)
