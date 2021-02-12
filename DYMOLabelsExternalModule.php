@@ -79,7 +79,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         $fields = array ("record_id", "obj_id", "obj_type", "obj_imggen", "obj_default");
         $rawdata = \REDCap::getData($project_id, "array", $record, $fields, $event_id, null, null, null, null, "[obj_id]<>''");
 
-        if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Record.php");
+        if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
         $project = new Project($this->framework, $project_id);
 
         // should get all fields for instrument with obj_name on it.

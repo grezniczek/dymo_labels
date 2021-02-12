@@ -3,7 +3,7 @@
 
 use DE\RUB\REDCapEMLib\Project;
 
-if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Record.php");
+if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
 
 $fw = $module->framework;
 $pid = $fw->getProjectId();
