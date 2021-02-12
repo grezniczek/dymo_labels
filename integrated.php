@@ -17,6 +17,7 @@ $module->includeJS("js/datatables.min.js");
 // Get a list of available label files.
 $mpid = $fw->getSystemSetting("system-management-project");
 $mp = Project::get($fw, $mpid);
+
 $record_ids = $mp->getRecordIds("[integrated]<>'disabled'");
 $labels = array();
 foreach ($record_ids as $record_id) {
@@ -42,9 +43,10 @@ foreach ($record_ids as $record_id) {
 
 ?>
 <div class="dymo-labels-container">
-    <h3>DYMO Labels</h3>
-
-    <table id="dymo-labels" class="table table-striped table-bordered" style="width:100%">
+    <h3><?= $fw->tt("module_name")?></h3>
+    <p><?= $fw->tt("projadmin_intro")?></p>
+    <p><button class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("projadmin_addnewlabel")?></button></p>
+    <table id="dymo-labels" class="table table-striped table-bordered table-hover" style="width:100%">
         <thead>
             <tr>
                 <th scope="col">#</th>
@@ -67,6 +69,9 @@ foreach ($record_ids as $record_id) {
         </tbody>
     </table>
 </div>
+
+
+
 <script>
     $(function() {
         $('#dymo-labels').DataTable();
