@@ -5,3 +5,23 @@
 select[name=dymo-labels_length] {
     width:60px !important;
 }
+
+
+/* Modals */
+.dlem-label {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    font-weight: 600;
+    font-size: 15px;
+}
+.dlem-label label {
+    margin: 0;
+}
+.dlem-description {
+    font-size: 13px;
+    margin-left: 0.5em;
+}
+.dlem-field {
+    margin-top: 0.2rem;
+    margin-bottom: 0.5rem;
+}
