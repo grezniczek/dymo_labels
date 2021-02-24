@@ -1,5 +1,6 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
+use DE\RUB\REDCapEMLib\Crypto;
 use DE\RUB\REDCapEMLib\Project;
 use ExternalModules\AbstractExternalModule;
 
@@ -96,8 +97,8 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
     function redcap_module_link_check_display($project_id, $link) {
         $fw = $this->framework;
         // Only show the link for the integrated plugin.
-        // The 'project-showlink' setting shall not apply to super users.
-        return ($link["id"] == "integrated" && $project_id != null && (SUPER_USER || $fw->getProjectSetting("project-showlink"))) ? $link : null;
+        // The 'show-link' setting shall not apply to super users.
+        return ($link["id"] == "integrated" && $project_id != null && (SUPER_USER || $fw->getProjectSetting("show-link"))) ? $link : null;
     }
 
 
@@ -109,14 +110,17 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         // Set default configuration.
         if ($project_id == null) {
             // System.
-            if ($fw->getSystemSetting("system-allow-anonymous") == null) {
-                $fw->setSystemSetting("system-allow-anonymous", false);
+            if ($fw->getSystemSetting("system-allow-public") == null) {
+                $fw->setSystemSetting("system-allow-public", false);
             }
         }
         else {
             // Project 
-            if ($fw->getProjectSetting("project-showlink") == null) {
-                $fw->setProjectSetting("project-showlink", true, $project_id);
+            if ($fw->getProjectSetting("show-link") == null) {
+                $fw->setProjectSetting("show-link", true, $project_id);
+            }
+            if ($fw->getProjectSetting("allow-public") == null) {
+                $fw->setProjectSetting("allow-public", false, $project_id);
             }
         }
     }
@@ -171,6 +175,18 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             $js = $this->framework->getUrl($name);
             echo "<script type=\"text/javascript\" src=\"$js\"></script>";
         }
+    }
+
+
+
+    function addLabel($name, $desc, $xml) {
+        if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
+        $guid = Crypto::getGuid();
+
+
+
+
+        return $guid;
     }
 
 }

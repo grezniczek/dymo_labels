@@ -41,22 +41,27 @@
     ],
     "system-settings": [
         {
-            "key": "system-allow-anonymous",
-            "name": "Allow anonymous access to the public plugin page",
-            "tt_name": "config_allowanonymous",
+            "key": "system-allow-public",
+            "name": "Allow anonymous access to public plugin pages",
+            "tt_name": "config_system_allow_public",
             "type": "checkbox"
-        },
-        {
-            "key": "system-management-project",
-            "name": "<b>Management Project:</b><br>The project id of the project to manage labels and permissions",
-            "tt_name": "config_managementpid",
-            "type": "project-id",
-            "required": true
         }
     ],
     "project-settings": [
         {
-            "key": "project-showlink",
+            "key": "js-debug",
+            "name": "Output debug information to the browser console",
+            "tt_name": "config_jsdebug",
+            "type": "checkbox"
+        },
+        {
+            "key": "allow-public",
+            "name": "Allow anonymous access to the public plugin page",
+            "tt_name": "config_allow_public",
+            "type": "checkbox"
+        },
+        {
+            "key": "show-link",
             "name": "Show the plugin-page link",
             "tt_name": "config_showlink",
             "type": "checkbox"
@@ -65,7 +70,7 @@
     "compatibility": {
         "php-version-min": "5.6.0",
         "php-version-max": "",
-        "redcap-version-min": "9.5.0",
+        "redcap-version-min": "10.1.0",
         "redcap-version-max": ""
      }
 }

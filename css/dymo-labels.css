@@ -25,3 +25,11 @@ select[name=dymo-labels_length] {
     margin-top: 0.2rem;
     margin-bottom: 0.5rem;
 }
+
+.dlem-alert {
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}

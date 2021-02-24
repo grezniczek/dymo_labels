@@ -1,9 +1,12 @@
-<?php
-/** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
+<?php namespace DE\RUB\DYMOLabelsExternalModule;
 
 use DE\RUB\REDCapEMLib\Project;
+use DE\RUB\REDCapEMLib\Crypto;
+
+/** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
 
 if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
+if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
 
 $fw = $module->framework;
 $pid = $fw->getProjectId();
@@ -16,6 +19,17 @@ $module->includeJS("js/3rd-party/autosize.min.js");
 $module->includeJS("js/3rd-party/bs-custom-file-input.min.js");
 $module->includeJS("js/config.js");
 
+// Ajax Setup.
+$crypto = Crypto::init();
+$ajax = array(
+    "verification" => $crypto->encrypt(array(
+        "random" => $crypto->genKey(),
+        "userid" => $GLOBALS["userid"],
+        "pid" => $pid,
+        "timestamp" => time(),
+    )),
+    "endpoint" => $fw->getUrl("ajax.php")
+);
 
 
 // Get a list of available label files.
@@ -44,6 +58,17 @@ foreach ($record_ids as $record_id) {
         );
     }
 }
+
+
+// Prepare configuration data
+$configSettings = array(
+    "debug" => $fw->getProjectSetting("js-debug") == true,
+    "ajax" => $ajax,
+    "strings" => array (
+        "chooseFile" => $fw->tt("projadmin_choosefile"),
+        "nameRequired" => $fw->tt("projadmin_namerequired"),
+    ),
+)
 
 ?>
 <div class="dymo-labels-container">
@@ -80,12 +105,12 @@ foreach ($record_ids as $record_id) {
     $(function() {
         $('#dymo-labels').DataTable()
         $('textarea.autosize').textareaAutoSize()
-        DYMOLabelEMConfig.init()
+        window.ExternalModules.DYMOLabelConfig_init(<?=json_encode($configSettings)?>)
     })
 </script>
 
 
-<!-- Modal: Add new label -->
+<!-- Modal: Add a new label -->
 <div
     class="modal fade"
     id="modal-addNew"
@@ -115,7 +140,7 @@ foreach ($record_ids as $record_id) {
                         A name that identifies this label. This is shown in the list of labels in the label manager.
                     </div>
                     <div class="dlem-field">
-                        <input type="text" class="form-control" aria-describedby="dlem-name-desc" id="dlem-name" name="name" />
+                        <input type="text" class="form-control" aria-describedby="dlem-name-desc" id="dlem-name" name="name" required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -138,26 +163,25 @@ foreach ($record_ids as $record_id) {
                     </div>
                     <div class="dlem-field">
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="dlem-file">
-                            <label class="custom-file-label" for="dlem-file">Choose file ...</label>
+                            <input type="file" class="custom-file-input" id="dlem-labelfile" required />
+                            <label class="custom-file-label" for="dlem-labelfile"><?=$fw->tt("projadmin_choosefile")?></label>
                         </div>
                     </div>
+                    <div class="dlem-alert alert-danger" id="dlem-labelfile-invalid" role="alert">
+                        <?=$fw->tt("projadmin_invalidlabel")?>
+                    </div> 
+                    <div class="dlem-alert alert-success" id="dlem-labelfile-valid" role="alert">
+                        <?=$fw->tt("projadmin_validlabel")?>
+                    </div> 
                 </div>
-
-            </div><!-- Modal Body -->
+            </div>
             <div class="modal-footer">
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"
-                >
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-primary btn-sm">
-                    Add Label
-                </button>
+                    data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
+                <button type="button" id="dlem-addlabelbtn" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_addlabel")?></button>
             </div>
-            <!-- footer -->
         </div>
     </div>
 </div>
