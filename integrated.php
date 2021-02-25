@@ -36,10 +36,15 @@ $labels = $module->getLabels();
 // Prepare configuration data
 $configSettings = array(
     "debug" => $fw->getProjectSetting("js-debug") == true,
+    "canDownload" => $fw->getProjectSetting("allow-download") == true,
     "ajax" => $ajax,
     "strings" => array (
         "chooseFile" => $fw->tt("projadmin_choosefile"),
         "nameRequired" => $fw->tt("projadmin_namerequired"),
+        "actionConfigure" => $fw->tt("projadmin_action_configure"),
+        "actionDownload" => $fw->tt("projadmin_action_download"),
+        "actionPrint" => $fw->tt("projadmin_action_print"),
+        "actionDelete" => $fw->tt("projadmin_action_delete"),
     ),
     "labels" => $labels,
 )
@@ -172,6 +177,42 @@ $configSettings = array(
                     class="btn btn-secondary btn-sm"
                     data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
                 <button type="button" data-dlem-action="confirm-delete-label" class="btn btn-danger btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_deletelabel")?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal: Error -->
+<div
+    class="modal fade"
+    id="modal-error"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-error-title"
+    aria-hidden="true"
+    data-backdrop="static"
+    data-keyboard="false"
+>
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title dlem-error-title" id="modal-error-title">
+                    <b><?= $fw->tt("projadmin_error_title")?></b>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><?=$fw->tt("projadmin_error_occured")?></p>
+                <p class="dlem-error-msg" data-dlem-content="error"></p>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-dismiss="modal"><?=$fw->tt("projadmin_dismiss")?></button>
             </div>
         </div>
     </div>

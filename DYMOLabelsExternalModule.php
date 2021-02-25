@@ -10,87 +10,6 @@ use ExternalModules\AbstractExternalModule;
  */
 class DYMOLabelsExternalModule extends AbstractExternalModule {
 
-    const MANAGEMENT_LABELFILE_INSTRUMENT = "label_file";
-
-    public static function read_label_file($edoc_id) {
-        $contents = null;
-        if ($edoc_id != null) {
-            $filename = \Files::copyEdocToTemp($edoc_id, true);
-            try {
-                if (file_exists($filename)) {
-                    $contents = file_get_contents($filename);
-                    unlink($filename);
-                }
-            }
-            catch (\Exception $e) {
-            }
-        }
-        return $contents;
-    }
-
-    function redcap_save_record($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance) {
-        $fw = $this->framework;
-
-        // Is the record being saved in the DYMO Label management project?
-        $management_pid = $fw->getSystemSetting("system-management-project");
-        if ($project_id != $management_pid || $instrument != self::MANAGEMENT_LABELFILE_INSTRUMENT) return;
-
-        // Process the label file.
-        // Get the record data.
-        $fields = array ("record_id", "file");
-        $rawdata = \REDCap::getData($project_id, "array", $record, $fields, $event_id);
-        if (count($rawdata) < 1) return;
-        
-        // Get the file id.
-        $edocId = $rawdata[$record][$event_id]["file"];
-        if ($edocId == null) return;
-        
-        // Read and parse the file.
-        $labelXml = self::read_label_file($edocId);
-        $error = "";
-        try {
-            $doc = simplexml_load_string($labelXml);
-        }
-        catch (\Exception $e) {
-            $error = "\nError: " . $e->getMessage();
-        }
-        if ($doc == false) {
-            \REDCap::logEvent("Parse DYMO label", "FAILED to parse label file with edoc_id '{$edocId}'" . $error);
-            return;
-        }
-
-        // Extract objects.
-        $labelObjects = array(); 
-        foreach ($doc->xpath("//ObjectInfo/TextObject") as $node) {
-            $labelObject = array ();
-            $labelObject["field_type"] = "txt";
-            $labelObject["field_image"] = null;
-            $labelObject["field_id"] = (string)$node->Name;
-            $labelObject["field_default"] = (string)$node->StyledText->Element->String;
-            $labelObjects[] = $labelObject;
-        }
-        foreach ($doc->xpath("//ObjectInfo/ImageObject") as $node) {
-            $labelObject = array ();
-            $labelObject["field_type"] = "img";
-            $labelObject["field_id"] = (string)$node->Name;
-            $labelObject["field_default"] = (string)$node->Image;
-            $labelObjects[] = $labelObject;
-        }
-
-        // Get stored object data.
-        $fields = array ("record_id", "obj_id", "obj_type", "obj_imggen", "obj_default");
-        $rawdata = \REDCap::getData($project_id, "array", $record, $fields, $event_id, null, null, null, null, "[obj_id]<>''");
-
-        if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
-        $project = new Project($this->framework, $project_id);
-
-        // should get all fields for instrument with obj_name on it.
-        // then, get all data for these fields (and probably log just to be sure not to lose anything)
-        // add this data to all objects in labelObjects array.
-        // then delete all from fields in this instrument from redcap_data (using sql)
-        // finally, add new data.
-    }
-
 
     /**
      * Control whether the plugin link is displayed.
@@ -118,10 +37,13 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         else {
             // Project 
             if ($fw->getProjectSetting("show-link") == null) {
-                $fw->setProjectSetting("show-link", true, $project_id);
+                $fw->setProjectSetting("show-link", true);
             }
             if ($fw->getProjectSetting("allow-public") == null) {
-                $fw->setProjectSetting("allow-public", false, $project_id);
+                $fw->setProjectSetting("allow-public", false);
+            }
+            if ($fw->getProjectSetting("allow-download") == null) {
+                $fw->setProjectSetting("allow-download", true);
             }
         }
     }

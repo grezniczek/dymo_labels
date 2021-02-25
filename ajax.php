@@ -52,6 +52,7 @@ class ajaxAddLabel {
                     );
                 break;
                 case "delete-label":
+                    $payload = json_decode($data["payload"], true);
                     $error = $m->deleteLabel($payload);
                     if (strlen($error)) {
                         $response = array (

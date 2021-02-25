@@ -25,9 +25,6 @@ var addState = {
     valid: false
 }
 
-/** @type JQuery */
-var $labels;
-
 /** @type DataTables.Api */
 var labelsTable;
 
@@ -51,12 +48,24 @@ function addNewLabel() {
  * @param {AddLabelResponse} response 
  */
 function addLabelDone(response) {
+    // Add label
+    /** @type LabelData */
+    var label = {
+        id: response.id,
+        name: addState.name,
+        desc: addState.desc,
+        filename: addState.filename,
+        xml: addState.xml
+    }
+    config.labels[label.id] = label
+    labelsTable.rows.add([label])
+    labelsTable.draw()
+    // Reset dialog
     addState.xml = ''
     addState.name = ''
     addState.desc = ''
     addState.filename = ''
     checkAddState()
-    log('addLabelDone')
 }
 
 /**
@@ -64,36 +73,9 @@ function addLabelDone(response) {
  * @param {string} error 
  */
 function addLabelFailed(error) {
-    log('addLabelFailed')
+    showError(error)
 }
 
-/**
- * Adds a row to the labels table.
- * @param {LabelData} label 
- */
-function addLabelRow(label) {
-    log('Adding label row: ', label)
-    var row = '<tr data-dlem-label-id="' + label.id + '">' + 
-        '<th scope="row">' + label.name + '</th>' +
-        '<td class="dlem-labeldesc">' + label.desc + '</td>' + 
-        '<td class="dlem-labelactions">' + 
-          '<button class="btn btn-xs btn-link" data-action="configure">Configure</button> | ' +
-          '<button class="btn btn-xs btn-secondary" data-action="print">Print</button> | ' +
-          '<button class="btn btn-xs btn-danger" data-action="delete">Delete</button>' +
-        '</td>' +
-        '</tr>'
-    var $row = $(row)
-    $row.find('button[data-action=configure]').on('click', function() {
-        configureLabel(label)
-    })
-    $row.find('button[data-action=print]').on('click', function() {
-        printLabel(label)
-    })
-    $row.find('button[data-action=delete]').on('click', function() {
-        deleteLabel(label)
-    })
-    $labels.find('tbody').append($row)
-}
 
 /**
  * Controls the "Add new label" dialog UI state.
@@ -203,6 +185,33 @@ function fileChanged() {
  */
 function configureLabel(label) {
     log('Configure label: ' + label.id)
+    showError("Not implemented yet.")
+}
+
+//#endregion
+
+
+//#region Download a label file
+
+/**
+ * Download a label file.
+ * @param {LabelData} label 
+ */
+function downloadLabel(label) {
+    log('Download label: ' + label.id)
+    var blob = new Blob([label.xml], { type: 'application/xml' })
+    var url = URL.createObjectURL(blob)
+    var a = document.createElement('a')
+    a.href = url
+    a.download = label.filename || (label.id + '.xml')
+    var clickHandler = function() {
+      setTimeout(function() {
+        URL.revokeObjectURL(url)
+        this.removeEventListener('click', clickHandler)
+      }, 150)
+    }
+    a.addEventListener('click', clickHandler, false);
+    a.click();
 }
 
 //#endregion
@@ -231,7 +240,7 @@ function deleteLabel(label) {
  */
 function deleteLabelConfirmed(id) {
     log('Delete label: ' + id)
-    //submitData('delete-label', id, deleteLabelDone, deleteLabelFailed)
+    submitData('delete-label', id, deleteLabelDone, deleteLabelFailed)
     deleteLabelDone({success:true,id: id})
 }
 
@@ -240,9 +249,10 @@ function deleteLabelConfirmed(id) {
  * @param {DeleteLabelResponse} response 
  */
 function deleteLabelDone(response) {
-    var $row = $('tr[data-dlem-label-id=' + response.id + ']')
-    $row.remove()
-    $labels.DataTable()
+    delete config.labels[response.id]
+    labelsTable.clear()
+    labelsTable.rows.add(getTableData())
+    labelsTable.draw()
 }
 
 /**
@@ -250,7 +260,7 @@ function deleteLabelDone(response) {
  * @param {string} error 
  */
 function deleteLabelFailed(error) {
-    log('deleteLabelFailed')
+    showError(error)
 }
 
 //#endregion
@@ -263,7 +273,8 @@ function deleteLabelFailed(error) {
  * @param {LabelData} label 
  */
 function printLabel(label) {
-    log('Not implemented - Print label: ' + label.id)
+    log('Print label: ' + label.id)
+    showError('Not implemented yet.')
 }
 
 //#endregion
@@ -297,6 +308,17 @@ function log() {
             break
     }
 }
+
+/**
+ * Displays an error message.
+ * @param {string} msg 
+ */
+function showError(msg) {
+    var $modal = $('#modal-error')
+    $modal.find('[data-dlem-content=error]').text(msg)
+    $modal.modal('show')
+}
+
 
 
 /**
@@ -387,17 +409,100 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
     $('button[data-dlem-action]').on('click', handleDialogButton)
 
     // Setup the labels table.
-    $labels = $('#dlem-labels')
-    Object.keys(config.labels).forEach(function(id) {
-        addLabelRow(config.labels[id])
+    labelsTable = $('#dlem-labels').DataTable({
+        columns: [
+            {
+                data: 'name'
+            },
+            {
+                data: 'desc'
+            },
+            {
+                data: 'id',
+                render: function(data, type) {
+                    if (type == 'display') {
+                        return renderLabelActions(data)
+                    }
+                    return data
+                }
+            }
+        ],
+        
+        createdRow: function(row, data, index) {
+            var $buttons = $('[data-dlem-action]', row)
+            $buttons.on('click', function(e) {
+                var action = e.target.getAttribute('data-dlem-action')
+                handleLabelActions(action, data['id'])
+            })
+        },
+        data: getTableData()
     })
     
-    labelsTable = $labels.DataTable()
-    
+
 
     // Setup some usability enhancements.
     // @ts-ignore
     $('textarea.autosize').textareaAutoSize()
+}
+
+/**
+ * Renders the action buttons for the labels table.
+ * @param {string} id 
+ */
+function renderLabelActions(id) {
+    var buttons = 
+        '<button class="btn btn-xs btn-link" data-dlem-action="configure">' + 
+        config.strings.actionConfigure + '</button> | '
+    if (config.canDownload) {
+        buttons += 
+            '<button class="btn btn-xs btn-link" data-dlem-action="download">' + config.strings.actionDownload + '</button> | '
+    }
+    buttons += 
+        '<button class="btn btn-xs btn-secondary" data-dlem-action="print">' + config.strings.actionPrint + '</button> | ' +
+        '<button class="btn btn-xs btn-danger" data-dlem-action="delete">' + config.strings.actionDelete + '</button>'
+    return buttons
+}
+
+/**
+ * Handles the click of a labels table action buttons.
+ * @param {string} action 
+ * @param {string} id 
+ */
+function handleLabelActions(action, id) {
+    switch(action) {
+        case "configure":
+            configureLabel(config.labels[id])
+            break
+        case 'download':
+            downloadLabel(config.labels[id])
+            break
+        case 'print': 
+            printLabel(config.labels[id])
+            break
+        case 'delete':
+            deleteLabel(config.labels[id])
+            break
+        default:
+            log('Invalid action: \'' + action + '\' on id \'' + id + '\'.')
+            break
+    }
+}
+
+/**
+ * Prepares the data for the labels table.
+ */
+function getTableData() {
+    var labels = []
+    Object.keys(config.labels).forEach(function(id) {
+        var label = config.labels[id]
+        var row = {
+            id: label.id,
+            name: label.name,
+            desc: label.desc
+        }
+         labels.push(row)
+    })
+    return labels
 }
 
 //#endregion

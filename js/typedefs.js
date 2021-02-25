@@ -9,6 +9,7 @@
  * @typedef DYMOLabelConfig
  * @type {{
  *  debug: boolean
+ *  canDownload: boolean
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
  *  labels: object { string: LabelData }
@@ -20,6 +21,10 @@
  * @type {{
  *  chooseFile: string
  *  nameRequired: string
+ *  actionConfigure: string
+ *  actionDownload: string
+ *  actionPrint: string
+ *  actionDelete: string
  * }}
  */
 

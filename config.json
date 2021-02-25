@@ -15,8 +15,7 @@
     ],
     "framework-version": 3,
     "permissions": [
-        "redcap_module_project_enable",
-        "redcap_save_record"
+        "redcap_module_project_enable"
     ],
     "enable-every-page-hooks-on-system-pages": true,
     "links": {
@@ -64,6 +63,12 @@
             "key": "show-link",
             "name": "Show the plugin-page link",
             "tt_name": "config_showlink",
+            "type": "checkbox"
+        },
+        {
+            "key": "allow-download",
+            "name": "Allow users to download label files",
+            "tt_name": "config_allow_download",
             "type": "checkbox"
         }
     ],

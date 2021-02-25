@@ -42,6 +42,10 @@ select[name=dlem-labels_length] {
     font-size: 80%;
 }
 
+.dlem-error-title,
+.dlem-error-msg {
+    color: red;
+}
 
 table.dataTable thead .sorting{background-image:none !important;}
 table.dataTable thead .sorting_asc{background-image:none !important;}
