@@ -21,11 +21,11 @@
     "links": {
         "project": [
             {
-                "id": "integrated",
+                "id": "setup",
                 "name": "DYMO Labels",
                 "tt_name": "link_name",
                 "icon": "fas fa-tags",
-                "url": "integrated.php",
+                "url": "setup.php",
                 "show-header-and-footer": true
             },
             {

@@ -18,7 +18,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         $fw = $this->framework;
         // Only show the link for the integrated plugin.
         // The 'show-link' setting shall not apply to super users.
-        return ($link["id"] == "integrated" && $project_id != null && (SUPER_USER || $fw->getProjectSetting("show-link"))) ? $link : null;
+        return ($link["id"] == "setup" && $project_id != null && (SUPER_USER || $fw->getProjectSetting("show-link"))) ? $link : null;
     }
 
 

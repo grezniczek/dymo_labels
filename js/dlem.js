@@ -431,7 +431,7 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
         createdRow: function(row, data, index) {
             var $buttons = $('[data-dlem-action]', row)
             $buttons.on('click', function(e) {
-                var action = e.target.getAttribute('data-dlem-action')
+                var action = e.currentTarget.getAttribute('data-dlem-action')
                 handleLabelActions(action, data['id'])
             })
         },
@@ -451,15 +451,15 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
  */
 function renderLabelActions(id) {
     var buttons = 
-        '<button class="btn btn-xs btn-link" data-dlem-action="configure">' + 
-        config.strings.actionConfigure + '</button> | '
+        '<button class="btn btn-xs btn-primary" data-dlem-action="configure"><i class="fas fa-wrench"></i> ' + config.strings.actionConfigure + '</button> ' +
+        '<button class="btn btn-xs btn-secondary" data-dlem-action="print"><i class="fas fa-print"></i> ' + config.strings.actionPrint + '</button> '
     if (config.canDownload) {
         buttons += 
-            '<button class="btn btn-xs btn-link" data-dlem-action="download">' + config.strings.actionDownload + '</button> | '
+        '<button class="btn btn-xs btn-secondary" data-dlem-action="download" title=""><i class="fas fa-file-download"></i></button> '
     }
     buttons += 
-        '<button class="btn btn-xs btn-secondary" data-dlem-action="print">' + config.strings.actionPrint + '</button> | ' +
-        '<button class="btn btn-xs btn-danger" data-dlem-action="delete">' + config.strings.actionDelete + '</button>'
+        '| <button class="btn btn-xs btn-danger" data-dlem-action="delete" title="' + config.strings.actionDownload + '"><i class="far fa-trash-alt"></i></button>'
+    log (buttons)
     return buttons
 }
 

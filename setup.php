@@ -39,12 +39,12 @@ $configSettings = array(
     "canDownload" => $fw->getProjectSetting("allow-download") == true,
     "ajax" => $ajax,
     "strings" => array (
-        "chooseFile" => $fw->tt("projadmin_choosefile"),
-        "nameRequired" => $fw->tt("projadmin_namerequired"),
-        "actionConfigure" => $fw->tt("projadmin_action_configure"),
-        "actionDownload" => $fw->tt("projadmin_action_download"),
-        "actionPrint" => $fw->tt("projadmin_action_print"),
-        "actionDelete" => $fw->tt("projadmin_action_delete"),
+        "chooseFile" => $fw->tt("setup_choosefile"),
+        "nameRequired" => $fw->tt("setup_namerequired"),
+        "actionConfigure" => $fw->tt("setup_action_configure"),
+        "actionDownload" => $fw->tt("setup_action_download"),
+        "actionPrint" => $fw->tt("setup_action_print"),
+        "actionDelete" => $fw->tt("setup_action_delete"),
     ),
     "labels" => $labels,
 )
@@ -52,8 +52,8 @@ $configSettings = array(
 ?>
 <div class="dymo-labels-container">
     <h3><?= $fw->tt("module_name")?></h3>
-    <p><?= $fw->tt("projadmin_intro")?></p>
-    <p><button type="button" data-toggle="modal" data-target="#modal-addNew" class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("projadmin_addnewlabel")?></button></p>
+    <p><?= $fw->tt("setup_intro")?></p>
+    <p><button type="button" data-toggle="modal" data-target="#modal-addNew" class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("setup_addnewlabel")?></button></p>
     <table id="dlem-labels" class="table table-striped table-bordered table-hover" style="width:100%">
         <thead>
             <tr>
@@ -84,7 +84,7 @@ $configSettings = array(
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modal-addNew-title">
-                    <b><?= $fw->tt("projadmin_addnewlabel")?></b>
+                    <b><?= $fw->tt("setup_addnewlabel")?></b>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -123,14 +123,14 @@ $configSettings = array(
                     <div class="dlem-field">
                         <div class="custom-file">
                             <input type="file" class="custom-file-input" id="dlem-labelfile" required />
-                            <label class="custom-file-label" for="dlem-labelfile"><?=$fw->tt("projadmin_choosefile")?></label>
+                            <label class="custom-file-label" for="dlem-labelfile"><?=$fw->tt("setup_choosefile")?></label>
                         </div>
                     </div>
                     <div class="dlem-alert alert-danger" id="dlem-labelfile-invalid" role="alert">
-                        <?=$fw->tt("projadmin_invalidlabel")?>
+                        <?=$fw->tt("setup_invalidlabel")?>
                     </div> 
                     <div class="dlem-alert alert-success" id="dlem-labelfile-valid" role="alert">
-                        <?=$fw->tt("projadmin_validlabel")?>
+                        <?=$fw->tt("setup_validlabel")?>
                     </div> 
                 </div>
             </div>
@@ -138,8 +138,8 @@ $configSettings = array(
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
-                <button type="button" data-dlem-action="add-label" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_addlabel")?></button>
+                    data-dismiss="modal"><?=$fw->tt("setup_cancel")?></button>
+                <button type="button" data-dlem-action="add-label" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("setup_addlabel")?></button>
             </div>
         </div>
     </div>
@@ -160,7 +160,7 @@ $configSettings = array(
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modal-delete-title">
-                    <b><?= $fw->tt("projadmin_deletelabel")?></b>
+                    <b><?= $fw->tt("setup_deletelabel")?></b>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -169,14 +169,14 @@ $configSettings = array(
             <div class="modal-body">
                 <p class="dlem-delete-name" data-dlem-content="name"></p>
                 <p class="dlem-delete-id" data-dlem-content="id"></p>
-                <p><?=$fw->tt("projadmin_confirmdeletetext")?></p>
+                <p><?=$fw->tt("setup_confirmdeletetext")?></p>
             </div>
             <div class="modal-footer">
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
-                <button type="button" data-dlem-action="confirm-delete-label" class="btn btn-danger btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_deletelabel")?></button>
+                    data-dismiss="modal"><?=$fw->tt("setup_cancel")?></button>
+                <button type="button" data-dlem-action="confirm-delete-label" class="btn btn-danger btn-sm" data-dismiss="modal"><?=$fw->tt("setup_deletelabel")?></button>
             </div>
         </div>
     </div>
@@ -198,21 +198,21 @@ $configSettings = array(
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-error-title" id="modal-error-title">
-                    <b><?= $fw->tt("projadmin_error_title")?></b>
+                    <b><?= $fw->tt("setup_error_title")?></b>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <p><?=$fw->tt("projadmin_error_occured")?></p>
+                <p><?=$fw->tt("setup_error_occured")?></p>
                 <p class="dlem-error-msg" data-dlem-content="error"></p>
             </div>
             <div class="modal-footer">
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("projadmin_dismiss")?></button>
+                    data-dismiss="modal"><?=$fw->tt("setup_dismiss")?></button>
             </div>
         </div>
     </div>
