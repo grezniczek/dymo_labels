@@ -217,3 +217,39 @@ $configSettings = array(
         </div>
     </div>
 </div>
+
+<!-- Modal: Info -->
+<div
+    class="modal fade"
+    id="modal-info"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-info-title"
+    aria-hidden="true"
+    data-backdrop="static"
+    data-keyboard="false"
+>
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title dlem-info-title" id="modal-info-title">
+                    <b><?= $fw->tt("setup_info_title")?></b>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <p>TODO</p>
+
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-dismiss="modal"><?=$fw->tt("setup_dismiss")?></button>
+            </div>
+        </div>
+    </div>
+</div>
