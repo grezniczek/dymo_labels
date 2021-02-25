@@ -2,7 +2,7 @@
     max-width: 800px;
 }
 
-select[name=dymo-labels_length] {
+select[name=dlem-labels_length] {
     width:60px !important;
 }
 
@@ -33,3 +33,18 @@ select[name=dymo-labels_length] {
     border: 1px solid transparent;
     border-radius: .25rem;
 }
+
+.dlem-delete-name {
+    font-weight: bold;
+}
+.dlem-delete-id {
+    color: gray;
+    font-size: 80%;
+}
+
+
+table.dataTable thead .sorting{background-image:none !important;}
+table.dataTable thead .sorting_asc{background-image:none !important;}
+table.dataTable thead .sorting_desc{background-image:none !important;}
+table.dataTable thead .sorting_asc_disabled{background-image:none !important;}
+table.dataTable thead .sorting_desc_disabled{background-image:none !important;}

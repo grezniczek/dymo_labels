@@ -3,7 +3,7 @@
 use DE\RUB\REDCapEMLib\Project;
 use DE\RUB\REDCapEMLib\Crypto;
 
-/** @var DE\RUB\DYMOLabelsExternalModule\DYMOLabelsExternalModule $module */
+/** @var DYMOLabelsExternalModule $module */
 
 if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
 if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
@@ -17,7 +17,7 @@ $module->includeCSS("css/3rd-party/datatables.min.css");
 $module->includeJS("js/3rd-party/datatables.min.js");
 $module->includeJS("js/3rd-party/autosize.min.js");
 $module->includeJS("js/3rd-party/bs-custom-file-input.min.js");
-$module->includeJS("js/config.js");
+$module->includeJS("js/dlem.js");
 
 // Ajax Setup.
 $crypto = Crypto::init();
@@ -31,34 +31,7 @@ $ajax = array(
     "endpoint" => $fw->getUrl("ajax.php")
 );
 
-
-// Get a list of available label files.
-$mpid = $fw->getSystemSetting("system-management-project");
-$mp = Project::get($fw, $mpid);
-
-$record_ids = $mp->getRecordIds("[integrated]<>'disabled'");
-$labels = array();
-foreach ($record_ids as $record_id) {
-    $record = $mp->getRecord($record_id);
-    $data = $record->getFieldValues(["name", "desc", "integrated", "whitelist", "file"]);
-    $add = $data["integrated"][1] == "all";
-    if (!$add) {
-        $whitelist = array();
-        foreach(explode(",", $data["whitelist"][1]) as $item) {
-            $whitelist[] = trim($item);
-        }
-        $add = in_array($pid, $whitelist);
-    }
-    if ($add) {
-        $labels[] = array(
-            "id" => $record_id,
-            "name" => $data["name"][1],
-            "desc" => $data["desc"][1],
-            "file" => $data["file"][1]
-        );
-    }
-}
-
+$labels = $module->getLabels();
 
 // Prepare configuration data
 $configSettings = array(
@@ -68,6 +41,7 @@ $configSettings = array(
         "chooseFile" => $fw->tt("projadmin_choosefile"),
         "nameRequired" => $fw->tt("projadmin_namerequired"),
     ),
+    "labels" => $labels,
 )
 
 ?>
@@ -75,40 +49,20 @@ $configSettings = array(
     <h3><?= $fw->tt("module_name")?></h3>
     <p><?= $fw->tt("projadmin_intro")?></p>
     <p><button type="button" data-toggle="modal" data-target="#modal-addNew" class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("projadmin_addnewlabel")?></button></p>
-    <table id="dymo-labels" class="table table-striped table-bordered table-hover" style="width:100%">
+    <table id="dlem-labels" class="table table-striped table-bordered table-hover" style="width:100%">
         <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">ID</th>
                 <th scope="col">Name</th>
+                <th scope="col">Description</th>
                 <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <th scope="row">1</th>
-                <td>AX2C</td>
-                <td>
-                    A quite long label name
-                </td>
-                <td>
-                    Configure | View | Remove
-                </td>
-            </tr>
         </tbody>
     </table>
 </div>
 
-
-
-<script>
-    $(function() {
-        $('#dymo-labels').DataTable()
-        $('textarea.autosize').textareaAutoSize()
-        window.ExternalModules.DYMOLabelConfig_init(<?=json_encode($configSettings)?>)
-    })
-</script>
-
+<script>$(function() { window.ExternalModules.DYMOLabelConfig_init(<?=json_encode($configSettings)?>) });</script>
 
 <!-- Modal: Add a new label -->
 <div
@@ -131,7 +85,7 @@ $configSettings = array(
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" style="min-height: 200px;">
+            <div class="modal-body">
                 <div class="form-group">
                     <div class="dlem-label">
                         <label for="dlem-name">Name</label>
@@ -180,7 +134,44 @@ $configSettings = array(
                     type="button"
                     class="btn btn-secondary btn-sm"
                     data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
-                <button type="button" id="dlem-addlabelbtn" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_addlabel")?></button>
+                <button type="button" data-dlem-action="add-label" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_addlabel")?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Delete label -->
+<div
+    class="modal fade"
+    id="modal-delete"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-delete-title"
+    aria-hidden="true"
+    data-backdrop="static"
+    data-keyboard="false"
+>
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-delete-title">
+                    <b><?= $fw->tt("projadmin_deletelabel")?></b>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="dlem-delete-name" data-dlem-content="name"></p>
+                <p class="dlem-delete-id" data-dlem-content="id"></p>
+                <p><?=$fw->tt("projadmin_confirmdeletetext")?></p>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-dismiss="modal"><?=$fw->tt("projadmin_cancel")?></button>
+                <button type="button" data-dlem-action="confirm-delete-label" class="btn btn-danger btn-sm" data-dismiss="modal"><?=$fw->tt("projadmin_deletelabel")?></button>
             </div>
         </div>
     </div>

@@ -11,6 +11,7 @@
  *  debug: boolean
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
+ *  labels: object { string: LabelData }
  * }}
  */
 
@@ -34,9 +35,48 @@
  */
 
 /**
+ * @typedef LabelData
+ * @type {{
+ *  id: string
+ *  name: string
+ *  desc: string
+ *  filename: string
+ *  xml: string
+ * }}
+ */
+
+/**
  * @typedef DYMOLabelAjax
  * @type {{
  *  endpoint: string
  *  verification: string
  * }}
  */
+
+ 
+/**
+ * @typedef AddLabelResponse
+ * @type {{
+ *  success: boolean
+ *  id: string
+ * }}
+ */
+
+/**
+ * @typedef DeleteLabelResponse
+ * @type {{
+ *  success: boolean
+ *  id: string
+ * }}
+ */
+
+/**
+ * @typedef GetLabelsResponse
+ * @type {{
+ *  success: boolean
+ *  count: integer
+ *  labels: object { string: LabelData }
+ * }}
+ */
+
+

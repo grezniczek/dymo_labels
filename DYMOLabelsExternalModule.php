@@ -2,6 +2,7 @@
 
 use DE\RUB\REDCapEMLib\Crypto;
 use DE\RUB\REDCapEMLib\Project;
+use Exception;
 use ExternalModules\AbstractExternalModule;
 
 /**
@@ -179,14 +180,49 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
 
 
-    function addLabel($name, $desc, $xml) {
+    /**
+     * Adds a new label.
+     * @param string $data The label data (associative array: name, desc, filename, xml).
+     * @return string A GUID under which the label is saved.
+     */
+    function addLabel($data) {
         if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $guid = Crypto::getGuid();
-
-
-
-
+        $label = array(
+            "id" => $guid,
+            "name" => $data["name"],
+            "desc" => $data["desc"],
+            "xml" => $data["xml"],
+            "filename" => $data["filename"],
+        );
+        $key = "label-{$guid}";
+        $this->setProjectSetting($key, $label);
         return $guid;
+    }
+
+    /**
+     * Deletes a label.
+     * @param string $id 
+     * @return string 
+     */
+    function deleteLabel($id) {
+        $labels = $this->getLabels();
+        if (array_key_exists($id, $labels)) {
+            $this->removeProjectSetting("label-{$id}");
+            return "";
+        }
+        return $this->tt("error_labelnotfound");
+    }
+
+    function getLabels() {
+        $settings = $this->getProjectSettings();
+        $labels = array();
+        foreach ($settings as $key => $setting) {
+            if (starts_with($key, "label-")) {
+                $labels[$setting["value"]["id"]] = $setting["value"];
+            }
+        }
+        return $labels;
     }
 
 }

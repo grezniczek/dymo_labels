@@ -37,11 +37,34 @@ class ajaxAddLabel {
             switch ($data["action"]) {
                 case "add-label":
                     $payload = json_decode($data["payload"], true);
-                    $id = $m->addLabel($payload["name"], $payload["desc"], $payload["xml"]);
+                    $id = $m->addLabel($payload);
                     $response = array (
                         "success" => true,
                         "id" => $id,
                     );
+                break;
+                case "get-labels":
+                    $labels = $m->getLabels();
+                    $response = array (
+                        "success" => true,
+                        "count" => count($labels),
+                        "labels" => $labels,
+                    );
+                break;
+                case "delete-label":
+                    $error = $m->deleteLabel($payload);
+                    if (strlen($error)) {
+                        $response = array (
+                            "success" => false,
+                            "error" => $error,
+                        );
+                    }
+                    else {
+                        $response = array (
+                            "success" => true,
+                            "id" => $payload,
+                        );
+                    }
                 break;
                 default:
                 break;
