@@ -210,47 +210,53 @@ class publicEndpoint {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?=$fw->tt("module_name")?></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link href="<?=$fw->getUrl("css/print.css")?>" rel="stylesheet" />
     <script src="<?=$fw->getUrl("js/3rd-party/dymo.connect.framework.js")?>"></script>
     <script src="<?=$fw->getUrl("js/3rd-party/jquery-3.5.1.min.js")?>"></script>
     <script src="<?=$fw->getUrl("js/3rd-party/bwip-js-min.js")?>"></script>
     <script src="<?=$fw->getUrl("js/dlem.js")?>" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h3><?=$fw->tt("module_name")?></h3>
     <div class="container">
-        <div id="prlist"></div>
-        <div id="preview"></div>
-        <button id="btnPrint" onclick="printLabels();">
-            DRUCKEN
-        </button>
-
-        <div id="error" style="color:red"></div>
-        <div id="copy">REDCap EM Version <?=$m->VERSION?> &mdash; &copy;<?php print date('Y'); ?> Dr. Günther Rezniczek</div>
-        <a href="#calibrate" onclick="toggleCalibrate();">Kalibrieren</a>
-        <div id="calibrate" class="hidden">
-            <p>
-                Zahlen sind Vielfache von 0.1 mm, d.h. ein Wert von 10 bedeutet eine Korrektur um 1 mm. Negative Werte
-                bedeuten eine Verschiebung nach links bzw. oben. Der zulässige Wertebereich ist -30 bis +30.
-            </p>
-            <form>
-                <table >
-                    <tr>
-                        <td>Delta X</td><td><input type="number" min="-30" max="30" name="cal_dx" id="cal_dx" /></td>
-                    </tr>
-                    <tr>
-                        <td>Delta Y</td><td><input type="number" min="-30" max="30" name="cal_dy" id="cal_dy" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <input type="hidden" id="cal_name" name="cal_name" />
-                            <input type="button" value="Speichern" onclick="saveCalibration();" />
-                        </td>
-                    </tr>
-                </table>
-            </form>
+        <h3><?=$fw->tt("module_name")?></h3>
+        <div id="prlist">
+            <div class="alert alert-danger" role="alert">
+                <?=$fw->tt("pp_noprinters")?>
+            </div>
         </div>
+        <button class="btn btn-success btn-md" data-command="print"><?=$fw->tt("pp_print")?></button>
+        <button class="btn btn-link" data-command="calibrate"><?=$fw->tt("pp_calibrate")?></button>
+        <div id="preview"></div>
+        <div id="error" style="color:red"></div>
+        <div class="dlem-copy">
+            REDCap EM Version <?=$m->VERSION?> &mdash; &copy;<?php print date('Y'); ?> Dr. Günther Rezniczek
+        </div>
+    </div>
+
+    <div id="calibrate" class="hidden">
+        <p>
+            Zahlen sind Vielfache von 0.1 mm, d.h. ein Wert von 10 bedeutet eine Korrektur um 1 mm. Negative Werte
+            bedeuten eine Verschiebung nach links bzw. oben. Der zulässige Wertebereich ist -30 bis +30.
+        </p>
+        <form>
+            <table >
+                <tr>
+                    <td>Delta X</td><td><input type="number" min="-30" max="30" name="cal_dx" id="cal_dx" /></td>
+                </tr>
+                <tr>
+                    <td>Delta Y</td><td><input type="number" min="-30" max="30" name="cal_dy" id="cal_dy" /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <input type="hidden" id="cal_name" name="cal_name" />
+                        <input type="button" value="Speichern" onclick="saveCalibration();" />
+                    </td>
+                </tr>
+            </table>
+        </form>
     </div>
     <script>$(function() { window.ExternalModules.DYMOLabelPrint_init(<?=json_encode($configSettings)?>) });</script>
 </body>
