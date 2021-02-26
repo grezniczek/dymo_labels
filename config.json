@@ -27,15 +27,11 @@
                 "icon": "fas fa-tags",
                 "url": "setup.php",
                 "show-header-and-footer": true
-            },
-            {
-                "id": "public",
-                "name": "DYMO Labels (Public)",
-                "url": "public.php?NOAUTH"
             }
         ]
     },
     "no-auth-pages": [
+        "post",
         "public"
     ],
     "system-settings": [
@@ -43,6 +39,12 @@
             "key": "system-allow-public",
             "name": "Allow anonymous access to public plugin pages",
             "tt_name": "config_system_allow_public",
+            "type": "checkbox"
+        },
+        {
+            "key": "system-enable-post",
+            "name": "Enable the global POST endpoint (see docs)",
+            "tt_name": "config_enable_post",
             "type": "checkbox"
         }
     ],

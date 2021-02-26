@@ -33,6 +33,9 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             if ($fw->getSystemSetting("system-allow-public") == null) {
                 $fw->setSystemSetting("system-allow-public", false);
             }
+            if ($fw->getSystemSetting("system-enable-post") == null) {
+                $fw->setSystemSetting("system-enable-post", false);
+            }
         }
         else {
             // Project 
@@ -145,6 +148,11 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             }
         }
         return $labels;
+    }
+
+    function getLabel($id) {
+        $labels = $this->getLabels();
+        return (array_key_exists($id, $labels) ? $labels[$id] : false);
     }
 
 }

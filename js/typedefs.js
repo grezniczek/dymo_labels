@@ -2,6 +2,7 @@
  * @typedef ExternalModules
  * @type {{
  *  DYMOLabelConfig_init?: function(DYMOLabelConfig):void
+ *  DYMOLabelPrint_init?: function(DYMOLabelConfig):void
  * }}
  */
 
@@ -13,6 +14,7 @@
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
  *  labels: object { string: LabelData }
+ *  print: DYMOLabelPrintData
  * }}
  */
 
@@ -25,6 +27,16 @@
  *  actionDownload: string
  *  actionPrint: string
  *  actionDelete: string
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelPrintData
+ * @type {{
+ *  template: string
+ *  auto: boolean
+ *  labels: []
+ *  errors: string[]
  * }}
  */
 

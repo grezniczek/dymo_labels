@@ -1,53 +1,63 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
-use DE\RUB\REDCapEMLib\Project;
 use DE\RUB\REDCapEMLib\Crypto;
-
-/** @var DYMOLabelsExternalModule $module */
 
 if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
 if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
 
-$fw = $module->framework;
-$pid = $fw->getProjectId();
+/**
+ * This is setup plugin page
+ */
+class setupPluginPage { 
+    
+    /**
+     * Processes the request.
+     * @param DYMOLabelsExternalModule $m 
+     * @return void 
+     */
+    static function process($m) {
 
-$module->includeCSS("css/dymo-labels.css");
-$module->includeCSS("css/3rd-party/datatables.min.css");
+        $fw = $m->framework;
+        $pid = $fw->getProjectId();
 
-$module->includeJS("js/3rd-party/datatables.min.js");
-$module->includeJS("js/3rd-party/autosize.min.js");
-$module->includeJS("js/3rd-party/bs-custom-file-input.min.js");
-$module->includeJS("js/dlem.js");
+        $m->includeCSS("css/dymo-labels.css");
+        $m->includeCSS("css/3rd-party/datatables.min.css");
 
-// Ajax Setup.
-$crypto = Crypto::init();
-$ajax = array(
-    "verification" => $crypto->encrypt(array(
-        "random" => $crypto->genKey(),
-        "userid" => $GLOBALS["userid"],
-        "pid" => $pid,
-        "timestamp" => time(),
-    )),
-    "endpoint" => $fw->getUrl("ajax.php")
-);
+        $m->includeJS("js/3rd-party/datatables.min.js");
+        $m->includeJS("js/3rd-party/autosize.min.js");
+        $m->includeJS("js/3rd-party/bs-custom-file-input.min.js");
+        $m->includeJS("js/dlem.js");
 
-$labels = $module->getLabels();
+        // Ajax Setup.
+        $crypto = Crypto::init();
+        $ajax = array(
+            "verification" => $crypto->encrypt(array(
+                "random" => $crypto->genKey(),
+                "userid" => $GLOBALS["userid"],
+                "pid" => $pid,
+                "timestamp" => time(),
+            )),
+            "endpoint" => $fw->getUrl("ajax.php")
+        );
 
-// Prepare configuration data
-$configSettings = array(
-    "debug" => $fw->getProjectSetting("js-debug") == true,
-    "canDownload" => $fw->getProjectSetting("allow-download") == true,
-    "ajax" => $ajax,
-    "strings" => array (
-        "chooseFile" => $fw->tt("setup_choosefile"),
-        "nameRequired" => $fw->tt("setup_namerequired"),
-        "actionConfigure" => $fw->tt("setup_action_configure"),
-        "actionDownload" => $fw->tt("setup_action_download"),
-        "actionPrint" => $fw->tt("setup_action_print"),
-        "actionDelete" => $fw->tt("setup_action_delete"),
-    ),
-    "labels" => $labels,
-)
+        $labels = $m->getLabels();
+
+        // Prepare configuration data
+        $configSettings = array(
+            "debug" => $fw->getProjectSetting("js-debug") == true,
+            "canDownload" => $fw->getProjectSetting("allow-download") == true,
+            "ajax" => $ajax,
+            "strings" => array (
+                "chooseFile" => $fw->tt("setup_choosefile"),
+                "nameRequired" => $fw->tt("setup_namerequired"),
+                "actionConfigure" => $fw->tt("setup_action_configure"),
+                "actionDownload" => $fw->tt("setup_action_download"),
+                "actionPrint" => $fw->tt("setup_action_print"),
+                "actionDelete" => $fw->tt("setup_action_delete"),
+            ),
+            "labels" => $labels,
+        );
+
 
 ?>
 <div class="dymo-labels-container">
@@ -66,6 +76,15 @@ $configSettings = array(
         </tbody>
     </table>
 </div>
+<p>
+    <a href="<?=$fw->getUrl("post.php", true)?>">POST endpoint</a>
+</p>
+
+<?php
+foreach($labels as $l) {
+    print "<p><a href=\"{$fw->getUrl("public.php", true)}&template={$l["id"]}&auto&range=R1:1-5&T_CODE=A9X24HK3&T_TEXT=Copy {R1}/5\">{$l["name"]}</a></p>";
+}
+?>
 
 <script>$(function() { window.ExternalModules.DYMOLabelConfig_init(<?=json_encode($configSettings)?>) });</script>
 
@@ -253,3 +272,8 @@ $configSettings = array(
         </div>
     </div>
 </div>
+
+<?php
+    }
+}
+setupPluginPage::process($module);

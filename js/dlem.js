@@ -495,6 +495,20 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
     $('textarea.autosize').textareaAutoSize()
 }
 
+EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
+    
+    config = data
+    log('DYMO Label EM - Print initialized', config)
+
+    // setPrintData(printData);
+
+    // // Setup printers (incl. calibration data)
+    // setupPrinters('prlist');
+    // // Preview
+    // renderPreview('preview');
+
+}
+
 /**
  * Renders the action buttons for the labels table.
  * @param {string} id 

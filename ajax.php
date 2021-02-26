@@ -3,9 +3,9 @@
 use DE\RUB\REDCapEMLib\Crypto;
 
 /**
- * This is an AJAX endpoint that adds a new label.
+ * This is the AJAX endpoint for all module operations
  */
-class ajaxAddLabel { 
+class ajaxEndpoint { 
     
     /**
      * Processes the request.
@@ -14,7 +14,7 @@ class ajaxAddLabel {
      */
     static function process($m) {
 
-        // Get payloads. REDCap adds CSRF tokens to $.ajax() - no idea how to verify them, so we just discard.
+        // Get payloads. REDCap adds CSRF tokens to $.ajax() - no idea how to verify them, so we just discard
         $raw = file_get_contents("php://input");
         $data = array();
         foreach (explode("&", $raw) as $item) {
@@ -23,12 +23,12 @@ class ajaxAddLabel {
                 $data[urldecode($parts[0])] = urldecode($parts[1]);
             }
         }
-        // Default response.
+        // Default response
         $response = array(
             "success" => false,
             "error" => "Invalid request."
         );
-        // Check verification.
+        // Check verification
         if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $crypto = Crypto::init();
         $verification = $crypto->decrypt($data["verification"]);
@@ -78,4 +78,4 @@ class ajaxAddLabel {
         print json_encode($response);
     }
 }
-ajaxAddLabel::process($module);
+ajaxEndpoint::process($module);
