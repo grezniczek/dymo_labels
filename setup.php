@@ -53,7 +53,7 @@ $configSettings = array(
 <div class="dymo-labels-container">
     <h3><?= $fw->tt("module_name")?></h3>
     <p><?= $fw->tt("setup_intro")?></p>
-    <p><button type="button" data-toggle="modal" data-target="#modal-addNew" class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("setup_addnewlabel")?></button></p>
+    <p><button type="button" data-command="add-new-label" class="btn btn-xs btn-rcgreen fs13"><i class="fa fa-plus"></i> <?= $fw->tt("setup_addnewlabel")?></button></p>
     <table id="dlem-labels" class="table table-striped table-bordered table-hover" style="width:100%">
         <thead>
             <tr>
@@ -86,7 +86,7 @@ $configSettings = array(
                 <h5 class="modal-title" id="modal-addNew-title">
                     <b><?= $fw->tt("setup_addnewlabel")?></b>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-modal-action="cancel" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -99,7 +99,7 @@ $configSettings = array(
                         A name that identifies this label. This is shown in the list of labels in the label manager.
                     </div>
                     <div class="dlem-field">
-                        <input type="text" class="form-control" aria-describedby="dlem-name-desc" id="dlem-name" name="name" required />
+                        <input type="text" data-input-control="name" class="form-control" aria-describedby="dlem-name-desc" id="dlem-name" name="name" required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -110,7 +110,7 @@ $configSettings = array(
                         A short description for this label. This is shown as hover text in certain places (list of labels in the label manager, label widget).
                     </div>
                     <div class="dlem-field">
-                        <textarea rows="1" class="form-control autosize" aria-describedby="dlem-desc-desc" id="dlem-desc" name="desc"></textarea>
+                        <textarea rows="1" data-input-control="desc" class="form-control autosize" aria-describedby="dlem-desc-desc" id="dlem-desc" name="desc"></textarea>
                     </div>
                 </div>
                 <div class="form-group">
@@ -122,7 +122,7 @@ $configSettings = array(
                     </div>
                     <div class="dlem-field">
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="dlem-labelfile" required />
+                            <input type="file" data-input-control="filename" class="custom-file-input" id="dlem-labelfile" required />
                             <label class="custom-file-label" for="dlem-labelfile"><?=$fw->tt("setup_choosefile")?></label>
                         </div>
                     </div>
@@ -138,8 +138,8 @@ $configSettings = array(
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("setup_cancel")?></button>
-                <button type="button" data-dlem-action="add-label" class="btn btn-primary btn-sm" data-dismiss="modal"><?=$fw->tt("setup_addlabel")?></button>
+                    data-modal-action="cancel"><?=$fw->tt("setup_cancel")?></button>
+                <button type="button" data-dlem-action="add-label" class="btn btn-primary btn-sm" data-modal-action="add"><?=$fw->tt("setup_addlabel")?></button>
             </div>
         </div>
     </div>
@@ -162,21 +162,21 @@ $configSettings = array(
                 <h5 class="modal-title" id="modal-delete-title">
                     <b><?= $fw->tt("setup_deletelabel")?></b>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-modal-action="cancel" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <p class="dlem-delete-name" data-dlem-content="name"></p>
-                <p class="dlem-delete-id" data-dlem-content="id"></p>
+                <p class="dlem-delete-name" data-modal-content="name"></p>
+                <p class="dlem-delete-id" data-modal-content="id"></p>
                 <p><?=$fw->tt("setup_confirmdeletetext")?></p>
             </div>
             <div class="modal-footer">
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("setup_cancel")?></button>
-                <button type="button" data-dlem-action="confirm-delete-label" class="btn btn-danger btn-sm" data-dismiss="modal"><?=$fw->tt("setup_deletelabel")?></button>
+                    data-modal-action="cancel"><?=$fw->tt("setup_cancel")?></button>
+                <button type="button" class="btn btn-danger btn-sm show-spinner" data-modal-action="confirm"><span class="when-enabled"><?=$fw->tt("setup_deletelabel")?></span><i class="fas fa-spinner fa-pulse when-disabled"></i></button>
             </div>
         </div>
     </div>
@@ -200,19 +200,19 @@ $configSettings = array(
                 <h5 class="modal-title dlem-error-title" id="modal-error-title">
                     <b><?= $fw->tt("setup_error_title")?></b>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-modal-action="dismiss" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <p><?=$fw->tt("setup_error_occured")?></p>
-                <p class="dlem-error-msg" data-dlem-content="error"></p>
+                <p class="dlem-error-msg" data-modal-content="error"></p>
             </div>
             <div class="modal-footer">
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("setup_dismiss")?></button>
+                    data-modal-action="dismiss"><?=$fw->tt("setup_dismiss")?></button>
             </div>
         </div>
     </div>
@@ -235,7 +235,7 @@ $configSettings = array(
                 <h5 class="modal-title dlem-info-title" id="modal-info-title">
                     <b><?= $fw->tt("setup_info_title")?></b>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-modal-action="dismiss" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -248,7 +248,7 @@ $configSettings = array(
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
-                    data-dismiss="modal"><?=$fw->tt("setup_dismiss")?></button>
+                    data-modal-action="dismiss"><?=$fw->tt("setup_dismiss")?></button>
             </div>
         </div>
     </div>

@@ -37,17 +37,41 @@ var labelsTable;
  * Adds a new label.
  */
 function addNewLabel() {
-    checkAddState()
-    if (addState.valid) {
-        submitData('add-label', addState, addLabelDone, addLabelFailed)
-    }
+    dialog('#modal-addNew', null, function($modal, verb) {
+        return new Promise(function(resolve, reject) {
+            checkAddState()
+            if (verb == 'add' && addState.valid) {
+                submitData('add-label', addState)
+                .then(function(response) {
+                    resolve(response)
+                })
+                .catch(function(err) {
+                    reject(err)
+                })
+            }
+            else {
+                resolve(verb)
+            }
+        })
+    })
+    .then(function(response) {
+        if (response['success']) {
+            addLabelData(response)
+        }
+        clearAddState()
+    })
+    .catch(function(err) {
+        dialog('#modal-error', {
+            error: err
+        })
+    })
 }
 
 /**
  * Adds a label row.
  * @param {AddLabelResponse} response 
  */
-function addLabelDone(response) {
+function addLabelData(response) {
     // Add label
     /** @type LabelData */
     var label = {
@@ -60,22 +84,18 @@ function addLabelDone(response) {
     config.labels[label.id] = label
     labelsTable.rows.add([label])
     labelsTable.draw()
+}
+
+function clearAddState() {
     // Reset dialog
     addState.xml = ''
     addState.name = ''
     addState.desc = ''
     addState.filename = ''
     checkAddState()
+    $('#modal-addNew [data-input-control]').val('')
+    fileChanged()
 }
-
-/**
- * Shows an error message after failing to add a label.
- * @param {string} error 
- */
-function addLabelFailed(error) {
-    showError(error)
-}
-
 
 /**
  * Controls the "Add new label" dialog UI state.
@@ -112,8 +132,6 @@ function checkAddState() {
     if (addState.xml.length > 0) {
         $('#dlem-labelfile-valid').show()
     }
-    
-    $('#dlem-addlabelbtn').prop('disabled', !addState.valid)
 }
 
 /**
@@ -185,7 +203,9 @@ function fileChanged() {
  */
 function configureLabel(label) {
     log('Configure label: ' + label.id)
-    showError("Not implemented yet.")
+    dialog('#modal-error', {
+        error: 'Not implemented yet.'
+    })
 }
 
 //#endregion
@@ -220,47 +240,44 @@ function downloadLabel(label) {
 //#region Delete a label
 
 /**
- * Shows the delete label confirmation.
+ * Shows the delete label confirmation
  * @param {LabelData} label 
  */
 function deleteLabel(label) {
-    var $modal = $('#modal-delete')
-    $modal.find('[data-dlem-content]').each(function() {
-        var $this = $(this)
-        var item = $this.attr('data-dlem-content')
-        $this.text(label[item])
+    dialog('#modal-delete', {
+        name: label.name,
+        id: label.id
+    }, function($modal, verb) {
+        return new Promise(function(resolve, reject) {
+            if (verb == 'confirm') {
+                submitData('delete-label', label.id)
+                .then(function() {
+                    resolve(verb)
+                })
+                .catch(function(err) {
+                    reject(err)
+                })
+            }
+            else {
+                resolve(verb)
+            }
+        })
     })
-    $modal.find('[data-dlem-action="confirm-delete-label"]').attr('data-dlem-id', label.id)
-    $modal.modal('show')
-}
-
-/**
- * Deletes a label.
- * @param {string} id 
- */
-function deleteLabelConfirmed(id) {
-    log('Delete label: ' + id)
-    submitData('delete-label', id, deleteLabelDone, deleteLabelFailed)
-    deleteLabelDone({success:true,id: id})
-}
-
-/**
- * Removes the label row.
- * @param {DeleteLabelResponse} response 
- */
-function deleteLabelDone(response) {
-    delete config.labels[response.id]
-    labelsTable.clear()
-    labelsTable.rows.add(getTableData())
-    labelsTable.draw()
-}
-
-/**
- * Shows an error message after failed deletion.
- * @param {string} error 
- */
-function deleteLabelFailed(error) {
-    showError(error)
+    .then(function(verb) {
+        if (verb == 'confirm') {
+            // Delete the label from the internal store and update the table
+            delete config.labels[label.id]
+            labelsTable.clear()
+            labelsTable.rows.add(getTableData())
+            labelsTable.draw()
+        }
+    })
+    .catch(function(err) {
+        // Show an error notification
+        dialog('#modal-error', {
+            error: err
+        })
+    })
 }
 
 //#endregion
@@ -273,8 +290,9 @@ function deleteLabelFailed(error) {
  * @param {LabelData} label 
  */
 function printLabel(label) {
-    log('Print label: ' + label.id)
-    showError('Not implemented yet.')
+    dialog('#modal-error', { 
+        error: 'Not implemented yet.' 
+    })
 }
 
 //#endregion
@@ -283,7 +301,7 @@ function printLabel(label) {
 //#region UI & Ajax Helper
 
 /**
- * Log to the console when in debug mode.
+ * Log to the console when in debug mode
  */
 function log() {
     if (!config.debug) return
@@ -310,80 +328,115 @@ function log() {
 }
 
 /**
- * Displays an error message.
- * @param {string} msg 
+ * 
+ * @param {string} selector 
+ * @param {object} content 
+ * @param {function(JQuery, string):Promise} action 
  */
-function showError(msg) {
-    var $modal = $('#modal-error')
-    $modal.find('[data-dlem-content=error]').text(msg)
-    $modal.modal('show')
+function dialog(selector, content, action = null) {
+    return new Promise(function(resolve, reject) {
+        // Prepare dialog
+        var $modal = $(selector)
+        $modal.find('[data-modal-content]').each(function(index, element) {
+            var item = element.getAttribute('data-modal-content')
+            element.innerHTML = content[item]
+        })
+        var enable = function(enabled = true) {
+            // Enable or disable all action buttons
+            // and show/hide busy content
+            $modal.find('[data-modal-action]').each(function() {
+                var $btn = $(this)
+                $btn.prop('disabled', !enabled)
+                if (enabled) {
+                    $btn.find('.when-disabled').hide()
+                    $btn.find('.when-enabled').show()
+                }
+                else {
+                    $btn.find('.when-disabled').show()
+                    $btn.find('.when-enabled').hide()
+                }
+            })
+        }
+        var hide = function() {
+            $modal.modal('hide')
+            $modal.off('click', clickHandler)
+            enable()
+        }
+        var done = function(result) {
+            hide()
+            resolve(result)
+        }
+        var error = function(err) {
+            hide()
+            reject(err)
+        }
+        /** @type {JQuery.EventHandlerBase<HTMLElement, JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>>} */
+        var clickHandler = function(e) {
+            var $btn = e.target.hasAttribute('data-modal-action') ? 
+                $(e.target) : $(e.target).parents('[data-modal-action]').first()
+            var verb = $btn.attr('data-modal-action')
+            if (verb != undefined) {
+                try {
+                    if (action) {
+                        // Disable all buttons and set spinner
+                        enable(false)
+                        // Perform action
+                        action($modal, verb)
+                        .then(function(result) {
+                            done(result)
+                        })
+                        .catch(function(err) {
+                            error(err)
+                        })
+                    }
+                    else {
+                        done(verb)
+                    }
+                }
+                catch (err) {
+                    error(err)
+                } 
+            }
+        }
+        enable()
+        $modal.on('click', clickHandler)
+        $modal.modal('show')
+    })
 }
 
-
-
 /**
- * Handles dialog button clicks.
- * @param {JQuery.ClickEvent} e 
- */
-function handleDialogButton(e) {
-    var $btn = $(e.target)
-    var action = $btn.attr('data-dlem-action')
-    switch (action) {
-        case 'add-label':
-            addNewLabel()
-            break
-        case 'confirm-delete-label':
-            var id = $btn.attr('data-dlem-id')
-            deleteLabelConfirmed(id)
-            break
-        default:
-            log('DYMO Label EM: Unknown action', e)
-            break
-    }
-}
-
-/** 
- * Callback on success. 
- * @callback onSuccessCallback 
- * @param {object} response
- */
-/**
- * Callback on error.
- * @callback onErrorCallback
- * @param {string} errorMessage
- */
-/**
- * Sends an request to the server. When done, calls the callback.
+ * Sends an ajax request to the server
  * @param {string} action
  * @param {object} payload
- * @param {onSuccessCallback} onSuccess 
- * @param {onErrorCallback} onError 
+ * @returns {Promise}
  */
-function submitData(action, payload, onSuccess, onError) {
-    $.ajax({
-        method: 'POST', 
-        url: config.ajax.endpoint,
-        data: {
-            verification: config.ajax.verification,
-            action: action, 
-            payload: JSON.stringify(payload),
-        },
-        dataType: "json",
-        success: function(response) {
-            if (response.success) {
-                log('Successful server request:', response)
-                config.ajax.verification = response.verification
-                onSuccess(response)
+function submitData(action, payload) {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            method: 'POST', 
+            url: config.ajax.endpoint,
+            data: {
+                verification: config.ajax.verification,
+                action: action, 
+                payload: JSON.stringify(payload),
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response['success']) {
+                    log('Successful server request:', response)
+                    config.ajax.verification = response['verification']
+                    resolve(response)
+                }
+                else {
+                    log('Unsuccessful server request:', response)
+                    reject(response.error)
+                }
+            },
+            error: function(jqXHR, error) {
+                log('Ajax error:', error, jqXHR)
+                reject(error)
             }
-            else {
-                log('Unsuccessful server request:', response)
-                onError(response.error)
-            }
-        },
-        error: function(jqXHR, error) {
-            log('Ajax error:', error, jqXHR)
-            onError(error)
-        }
+        })
     })
 }
 
@@ -404,9 +457,7 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
     $('#dlem-name').on('change', function() {
         checkAddState()
     })
-
-    // Setup dialog buttons
-    $('button[data-dlem-action]').on('click', handleDialogButton)
+    $('[data-command="add-new-label"]').on('click', addNewLabel)
 
     // Setup the labels table.
     labelsTable = $('#dlem-labels').DataTable({
@@ -437,7 +488,6 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
         },
         data: getTableData()
     })
-    
 
 
     // Setup some usability enhancements.
@@ -459,7 +509,6 @@ function renderLabelActions(id) {
     }
     buttons += 
         '| <button class="btn btn-xs btn-danger" data-dlem-action="delete" title="' + config.strings.actionDownload + '"><i class="far fa-trash-alt"></i></button>'
-    log (buttons)
     return buttons
 }
 
