@@ -210,6 +210,7 @@ class publicEndpoint {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?=$fw->tt("module_name")?></title>
+    <link rel="shortcut icon" href="<?=APP_PATH_IMAGES?>favicon.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link href="<?=$fw->getUrl("css/print.css")?>" rel="stylesheet" />
     <script src="<?=$fw->getUrl("js/3rd-party/dymo.connect.framework.js")?>"></script>
@@ -261,7 +262,6 @@ class publicEndpoint {
     <script>$(function() { window.ExternalModules.DYMOLabelPrint_init(<?=json_encode($configSettings)?>) });</script>
 </body>
 </html>
-
 <?php
     }
 }
