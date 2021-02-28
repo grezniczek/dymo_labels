@@ -28,6 +28,9 @@ var addState = {
 /** @type DataTables.Api */
 var labelsTable;
 
+/** @type DYMOLabelFramework_PrinterInfo[] */
+var printers = []
+
 //#endregion
 
 
@@ -500,7 +503,13 @@ EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
     config = data
     log('DYMO Label EM - Print initialized', config)
 
-    // setPrintData(printData);
+    setupPrinters()
+    setupLabels()
+
+    $('button[data-command=refresh]').on('click', setupPrinters)
+    $('input[name=printer]').on('change', selectPrinter)
+
+    processPrintData()
 
     // // Setup printers (incl. calibration data)
     // setupPrinters('prlist');
@@ -525,6 +534,10 @@ function renderLabelActions(id) {
         '| <button class="btn btn-xs btn-danger" data-dlem-action="delete" title="' + config.strings.actionDownload + '"><i class="far fa-trash-alt"></i></button>'
     return buttons
 }
+
+//#endregion
+
+//#region Setup Helpers
 
 /**
  * Handles the click of a labels table action buttons.
@@ -567,6 +580,125 @@ function getTableData() {
     })
     return labels
 }
+
+//#endregion
+
+//#region Print Preview & Print
+
+/** @type {DYMOLabelFramework_PrinterInfo} */
+var selectedPrinter = null
+
+/**
+ * Sets the UI state (highlights, messages, enable/disable buttons)
+ */
+function setUIState() {
+    if (selectPrinter == null) {
+        $('tr.no-printer').show()
+        $('.printers-card').addClass('border-danger')
+    }
+    else {
+        $('tr.no-printer').hide()
+        $('.printers-card').removeClass('border-danger')
+    }
+    if (config.print.labels.length == 0) {
+        $('tr.no-labels').show()
+        $('.labels-card').addClass('border-danger')
+    }
+    else {
+        $('tr.no-labels').hide()
+        $('.labels-card').removeClass('border-danger')
+    }
+    $('[data-command=print]').prop('disabled', 
+        selectPrinter == null || 
+        config.print.labels.length == 0 || 
+        config.labels[config.print.template] == undefined)
+    $('[data-command=calibrate').prop('disabled', 
+        selectedPrinter == null || 
+        config.labels[config.print.template] == undefined)
+}
+/**
+ * Selects a printer
+ * @param {JQuery.ChangeEvent} e 
+ */
+function selectPrinter(e) {
+    var idx = $(e.target).val().toString()
+    log('Selected printer #' + idx)
+    selectedPrinter = printers[idx]
+}
+
+/**
+ * Sets up the printer selection UI (initially and after refresh)
+ */
+function setupPrinters() {
+    /** @type DYMOLabelFramework */
+    //@ts-ignore
+    var DLF = dymo.label.framework
+    printers = DLF.getPrinters()
+    selectedPrinter = null
+    log(printers)
+    
+    // Clone template and clear table
+    var $table = $('table.printers')
+    $table.find('tr.printer').remove()
+    if (printers.length) {
+        for (var i = 0; i < printers.length; i++) {
+            var printer = printers[i]
+            var $row = $table.find('tr.printer-template').clone()
+            $row.removeClass('printer-template').addClass('printer')
+            var active = selectedPrinter == null && printer.isConnected
+            if (active) {
+                selectedPrinter = printers[i]
+            }
+            $row.find('input[name=printer]')
+                .prop('disabled', !printer.isConnected)
+                .prop('id', 'printer-' + i)
+                .prop('checked', active)
+                .val(i)
+            $row.find('label.printer-name')
+                .attr('for', 'printer-' + i)
+                .text(printer.name)
+            if (printer.isTwinTurbo) {
+                $row.find('input.printer-roll-left')
+                    .attr('name', 'printer-roll-' + i)
+                    .attr('id', 'printer-roll-left-' + i)
+                    .prop('checked', true)
+                $row.find('label.printer-roll-left').attr('for', 'printer-roll-left-' + i)
+                $row.find('input.printer-roll-right')
+                    .attr('name', 'printer-roll-' + i)
+                    .attr('id', 'printer-roll-right-' + i)
+                $row.find('label.printer-roll-right').attr('for', 'printer-roll-right-' + i)
+            }
+            else {
+                $row.find('span.twinturbo').hide()
+            }
+            if (printer.isConnected) {
+                $row.find('span.printer-offline').hide()
+
+            }
+            $table.append($row)
+        }
+    }
+    setUIState()
+}
+
+/**
+ * Renders the labels table
+ */
+function setupLabels() {
+    for (var i = 0; i < config.print.labels.length; i++) {
+        var items = config.print.labels[i]
+        
+        
+    }
+}
+
+
+function processPrintData() {
+
+}
+
+
+
 
 //#endregion
 

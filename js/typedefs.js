@@ -13,8 +13,8 @@
  *  canDownload: boolean
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
- *  labels: object { string: LabelData }
  *  print: DYMOLabelPrintData
+ *  labels: object { string: LabelData }
  * }}
  */
 
@@ -27,6 +27,8 @@
  *  actionDownload: string
  *  actionPrint: string
  *  actionDelete: string
+ *  noPrinters: string
+ *  noLabels: string
  * }}
  */
 
@@ -35,10 +37,21 @@
  * @type {{
  *  template: string
  *  auto: boolean
- *  labels: []
+ *  labels: DYMOLabelItem[][]
  *  errors: string[]
  * }}
  */
+
+/**
+ * @typedef DYMOLabelItem
+ * @type {{
+ *  name: string
+ *  type: string
+ *  value: string
+ * }}
+ */
+
+
 
 /**
  * @typedef AddLabelState
@@ -93,6 +106,29 @@
  *  success: boolean
  *  count: integer
  *  labels: object { string: LabelData }
+ * }}
+ */
+
+
+/**
+ * @typedef DYMOLabelFramework
+ * @type {{
+ *  getPrinters: function():DYMOLabelFramework_PrinterInfo[]
+ * }}
+ */
+
+
+/**
+ * @typedef DYMOLabelFramework_PrinterInfo
+ * @type {{
+ *  name: string
+ *  modelName: string
+ *  isConnected: boolean
+ *  isLocal: boolean
+ *  isTwinTurbo: boolean
+ *  originalPrinterName: string
+ *  printerType: string
+ *  printerUri: string
  * }}
  */
 
