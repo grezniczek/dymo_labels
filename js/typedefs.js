@@ -14,7 +14,7 @@
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
  *  print: DYMOLabelPrintData
- *  labels: object { string: LabelData }
+ *  labels: Object<string, LabelData>
  * }}
  */
 
@@ -29,6 +29,7 @@
  *  actionDelete: string
  *  noPrinters: string
  *  noLabels: string
+ *  removed: string
  * }}
  */
 
@@ -48,6 +49,15 @@
  *  name: string
  *  type: string
  *  value: string
+ *  png: string
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelCalibration
+ * @type {{
+ *  dx: Number
+ *  dy: Number
  * }}
  */
 
@@ -115,6 +125,17 @@
  * @type {{
  *  getPrinters: function():DYMOLabelFramework_PrinterInfo[]
  *  init: function()
+ *  checkEnvironment: function():DYMOLabelFramework_Status
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelFramework_Status
+ * @type {{
+ *  errorDetails: string
+ *  isBrowserSupported: boolean
+ *  isFrameworkInstalled: boolean
+ *  isWebServicePresent: boolean
  * }}
  */
 
@@ -130,6 +151,7 @@
  *  originalPrinterName: string
  *  printerType: string
  *  printerUri: string
+ *  calData: DYMOLabelCalibration
  * }}
  */
 

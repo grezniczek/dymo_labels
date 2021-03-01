@@ -13,10 +13,10 @@ if (typeof EM == 'undefined') {
     window.ExternalModules = EM
 }
 
-/** @type DYMOLabelConfig */
+/** @type {DYMOLabelConfig} */
 var config;
 
-/** @type AddLabelState */
+/** @type {AddLabelState} */
 var addState = {
     name: '', 
     desc: '', 
@@ -25,11 +25,12 @@ var addState = {
     valid: false
 }
 
-/** @type DataTables.Api */
+/** @type {DataTables.Api} */
 var labelsTable;
 
-/** @type DYMOLabelFramework_PrinterInfo[] */
+/** @type {DYMOLabelFramework_PrinterInfo[]} */
 var printers = []
+
 
 //#endregion
 
@@ -308,24 +309,32 @@ function printLabel(label) {
  */
 function log() {
     if (!config.debug) return
+    var ln = '??'
+    try {
+        var line = (new Error).stack.split('\n')[2]
+        var parts = line.split(':')
+        ln = parts[parts.length - 2]
+    }
+    catch { }
+    var prompt = 'DYMO Label EM [' + ln + ']'
     switch(arguments.length) {
         case 1: 
-            console.log(arguments[0])
+            console.log(prompt, arguments[0])
             break
         case 2: 
-            console.log(arguments[0], arguments[1])
+            console.log(prompt, arguments[0], arguments[1])
             break
         case 3: 
-            console.log(arguments[0], arguments[1], arguments[2])
+            console.log(prompt, arguments[0], arguments[1], arguments[2])
             break
         case 4: 
-            console.log(arguments[0], arguments[1], arguments[2], arguments[3])
+            console.log(prompt, arguments[0], arguments[1], arguments[2], arguments[3])
             break
         case 5: 
-            console.log(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
+            console.log(prompt, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
             break
         default: 
-            console.log(arguments)
+            console.log(prompt, arguments)
             break
     }
 }
@@ -451,7 +460,7 @@ function submitData(action, payload) {
 EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
     
     config = data
-    log('DYMO Label EM - Config initialized', config)
+    log('Config initialized', config)
 
     checkAddState()
     $('#dlem-labelfile').on('change', function() {
@@ -501,21 +510,35 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
 EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
     
     config = data
-    log('DYMO Label EM - Print initialized', config)
+    log('Print page initializing:', config)
+    // @ts-ignore
+    DLF = dymo.label.framework
+    DLF.init()
 
-    setupPrinters()
-    setupLabels()
+    setTimeout(function() {
+        var status = DLF.checkEnvironment()
+        log('DYMO Framework Status:', status)
+    
+        if (status.isBrowserSupported && 
+            status.isFrameworkInstalled && 
+            status.isWebServicePresent) {
+            
+            setupPrinters()
+            setupLabels()
 
-    $('button[data-command=refresh]').on('click', setupPrinters)
-    $('input[name=printer]').on('change', selectPrinter)
+            $('button[data-command=refresh]').on('click', setupPrinters)
+            $('input[name=printer]').on('change', selectPrinter)
 
-    processPrintData()
+            setUIState()
 
-    // // Setup printers (incl. calibration data)
-    // setupPrinters('prlist');
-    // // Preview
-    // renderPreview('preview');
-
+            $('.initialized').show(200)
+        }
+        else {
+            $('#error').html(status.errorDetails)
+        }
+    
+        $('.initializing').hide(200)
+    }, 100);
 }
 
 /**
@@ -588,11 +611,14 @@ function getTableData() {
 /** @type {DYMOLabelFramework_PrinterInfo} */
 var selectedPrinter = null
 
+/** @type DYMOLabelFramework */
+var DLF = null
+
 /**
  * Sets the UI state (highlights, messages, enable/disable buttons)
  */
 function setUIState() {
-    if (selectedPrinter == null) {
+    if (selectedPrinter == null && printers.length < 1) {
         $('tr.no-printer').show()
         $('.printers-card').addClass('border-danger')
     }
@@ -608,13 +634,23 @@ function setUIState() {
         $('tr.no-labels').hide()
         $('.labels-card').removeClass('border-danger')
     }
-    $('[data-command=print]').prop('disabled', 
-        selectedPrinter == null || 
-        config.print.labels.length == 0 || 
-        config.labels[config.print.template] == undefined)
     $('[data-command=calibrate').prop('disabled', 
         selectedPrinter == null || 
         config.labels[config.print.template] == undefined)
+
+    // Count labels
+    var n = 0
+    $('input[data-label-include]').each(function() {
+        if ($(this).prop('checked')) n++
+    })
+    if (n == 0) {
+        $('[data-command="select-all"]').prop('checked', false)
+    }
+    $('[data-command=print]').prop('disabled', 
+        selectedPrinter == null || 
+        config.print.labels.length == 0 || 
+        config.labels[config.print.template] == undefined ||
+        n == 0)
 }
 /**
  * Selects a printer
@@ -630,12 +666,8 @@ function selectPrinter(e) {
  * Sets up the printer selection UI (initially and after refresh)
  */
 function setupPrinters() {
-    /** @type DYMOLabelFramework */
-    //@ts-ignore
-    var DLF = dymo.label.framework
     printers = DLF.getPrinters()
     selectedPrinter = null
-    log(printers)
     
     // Clone template and clear table
     var $table = $('table.printers')
@@ -678,27 +710,241 @@ function setupPrinters() {
             $table.append($row)
         }
     }
-    setUIState()
+    var done = function() {
+        setUIState()
+        log('Printers found:', printers)
+    }
+    getPrinterCalibration().then(done, done)
 }
 
 /**
  * Renders the labels table
  */
 function setupLabels() {
+    /** @type {DYMOLabelItem[]} */
+    var cols = []
+    /** @type {DYMOLabelItem[][]} */
+    var rows = []
     for (var i = 0; i < config.print.labels.length; i++) {
+        rows[i] = []
         var items = config.print.labels[i]
-        
-        
+        for (var j = 0; j < items.length; j++) {
+            var label = items[j]
+            switch (label.type) {
+                case 'QR':
+                    label.png = generateBarcode(label.value, 'qrcode')
+                    break
+                case 'DM':
+                    label.png = generateBarcode(label.value, 'datamatrix')
+                    break
+                default:
+                    label.value = label.value.replace('\\n', '\n')
+                    break
+            }
+            if (i == 0) {
+                cols[j] = label
+            }
+            rows[i][j] = label
+        }
+    }
+
+    // Render table
+    // Header row
+    var $row = $('<tr></tr>')
+    $row.append('<th><input type="checkbox" data-command="select-all" checked="checked"></th>')
+    $row.append('<th><i class="far fa-eye"></i></th>')
+    for (var col = 0; col < cols.length; col++) {
+        $row.append('<th scope="col">' + cols[col].name + '</th>')
+    }
+    $('.labels-header').append($row)
+    $('[data-command="select-all"]').on('change', function() {
+        var all = $('input[data-command="select-all"]').prop('checked')
+        $('input[data-label-include]').prop('checked', all)
+        setUIState()
+    })
+    // Label rows
+    for (var row = 0; row < rows.length; row++) {
+        $row = $('<tr class="label" data-label="' + row + '"></tr>')
+        $row.append('<th scope="row"><input type="checkbox" data-label-include="' + row + '" checked="checked"></th>')
+        $row.append('<td><button data-command="preview" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button></td>')
+        for (var col = 0; col < cols.length; col++) {
+            var $cell = $('<td></td>')
+            switch(cols[col].type) {
+                case 'T':
+                    var $pre = $('<pre></pre>')
+                    $pre.text(rows[row][col].value)
+                    $cell.append($pre)
+                    break
+                case 'R':
+                    var $span = $('<span class="removed"></span')
+                    $span.html(config.strings.removed)
+                    $cell.append($span)
+                    break
+                case 'DM':
+                case 'QR':
+                    var $img = $('<img src="data:image/png;base64, ' + rows[row][col].png + '" />')
+                    $cell.append($img)
+                    break
+            }
+            $row.append($cell)
+        }
+        $row.on('click', function(e) {
+            if (e.target.hasAttribute('data-label-include')) {
+                // Checkbox
+                return
+            }
+            if (e.target.hasAttribute('data-command') || $(e.target).parents('[data-command]').length) {
+                // Preview button
+                previewLabel(Number.parseInt(e.currentTarget.getAttribute('data-label')))
+            }
+            else {
+                // Somewhere in row
+                var $chk = $(e.currentTarget).find('[data-label-include]')
+                $chk.prop('checked', !$chk.prop('checked'))
+            }
+            setUIState()
+        })
+        $('.labels-body').append($row)
     }
 }
 
+/**
+ * Renders a QRcode or DataMatrix 
+ * @param {string} val 
+ * @param {string} type 
+ * @param {string} rot 
+ * @returns {string}
+ */
+function generateBarcode(val, type, rot = 'N') {
+    if (!val) return '';
+    if (!type) type = 'datamatrix';
+    if (!(type == 'datamatrix' || type == 'qrcode'))
+    {
+        throw 'Unsupported barcode type.'
+    }
+    switch (rot) {
+        case "N":
+        case "L":
+        case "R":
+        case "I":
+            break;
+        default:
+            rot = "N";
+            break;
+    }
 
-function processPrintData() {
+    var options = {
+        scale: 2,
+        rotate: rot,
+        padding: 0,
+        backgroundcolor: 'FFFFFF',
+        bcid: type,
+        text: val,
+        includetext: false,
+    }
+
+    var canvas = document.createElement('canvas')
+    try {
+        // @ts-ignore
+        bwipjs.toCanvas(canvas, options)
+        var dataUrl = canvas.toDataURL('image/png')
+        // Remove 'data:image/png;base64,'
+        var png = dataUrl.substr(dataUrl.indexOf(',') + 1).trim()
+        return png
+    }
+    catch (e) {
+        log ('Failed to generate barcode:', e)
+    }
+    return val
+}
+
+/**
+ * Generates an empty PNG
+ */
+function emptyPng() {
+    /** @type {HTMLCanvasElement} */
+    var canvas = document.createElement('canvas')
+    var png = canvas.toDataURL('image/png')
+    png = png.substr(png.indexOf(',') + 1).trim()
+    return png;
+}
+
+/**
+ * 
+ * @param {Number} labelNo 
+ */
+function previewLabel(labelNo) {
+    var labelData = config.print.labels[labelNo]
+    log('Preview label:', labelData)
+
+    var xml = prepareLabelXml(labelData, null)
+
+}
+
+
+/**
+ * 
+ * @param {DYMOLabelItem[]} labelData
+ * @param {DYMOLabelCalibration} calData
+ * @returns {string}
+ */
+function prepareLabelXml(labelData, calData) {
+    
+    var doc = $.parseXML(config.labels[config.print.template].xml)
+
+    // Adjust object bounds
+    calData = calData || { dx: 0, dy: 0 }
+    // Conversion of 1/10mm to twips = 1440/254
+    var dx = 1440 * calData.dx / 254
+    var dy = 1440 * calData.dy / 254;
+    $(doc).find('Bounds').each(function (i, el) {
+        var x = Number(el.getAttribute('X'))
+        var y = Number(el.getAttribute('Y'))
+        x = x + dx;
+        y = y + dy;
+        el.setAttribute('X', x.toString())
+        el.setAttribute('Y', y.toString())
+    })
+
+    // Remove label objects marked 'R'
+    for (var i = 0; i < labelData.length; i++) {
+        var label = labelData[i]
+        if (label.type == 'R') {
+            $(doc).find('Name').each(function(i, el) {
+                if (el.textContent == label.name) {
+                    $(el.parentNode.parentNode).remove()
+                }
+            })
+        }
+    }
+    return (new XMLSerializer()).serializeToString(doc)
+}
+
+function processPrintQueue() {
+    
+    // Get calibration data
+    var cal = selectedPrinter.calData
+
+    
 
 }
 
 
 
+/**
+ * Gets printer calibration data
+ */
+function getPrinterCalibration() {
+    return new Promise(function(resolve, reject) {
+        // TODO
+        // Get data from AJAX based on available printers and the current label
+        // Dummy code:
+        for (var i = 0; i < printers.length; i++) {
+            printers[i].calData = { dx: 0, dy: 0 }
+        }
+        resolve()
+    })
+}
 
 //#endregion
 

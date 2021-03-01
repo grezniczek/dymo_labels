@@ -16,16 +16,7 @@
             "name": "Attach to Chrome",
             "port": 9222,
             "webRoot": "${workspaceFolder}",
-            "sourceMaps": false,
-            "smartStep": true
-        },
-        {
-            "name": "Launch currently open script",
-            "type": "php",
-            "request": "launch",
-            "program": "${file}",
-            "cwd": "${fileDirname}",
-            "port": 9000
+            "sourceMaps": false
         }
     ],
     "compounds": [

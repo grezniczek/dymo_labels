@@ -3,6 +3,13 @@ body {
     padding-top: 1em; 
 }
 
+.initializing {
+    font-size: 0.95em;
+}
+.initialized {
+    display: none;
+}
+
 .card-header {
     padding: 0.25rem 0.75rem;
 }
@@ -49,12 +56,6 @@ td.printer-status {
 
 
 
-/* table, td {
-    border-collapse: collapse;
-    padding: 5px;
-    border: 1px solid black;
-    margin: 10px;
-} */
 
 #error {
     color: red;
@@ -84,15 +85,29 @@ a {
     display: none;
 }
 
-table.preview, table.preview td, table.preview th {
+.labels-card div.card-body {
+    padding: 10px;
+    text-align: center;
+    overflow: auto;
+}
+table.labels {
+    width: auto;
+}
+table.labels td, table.labels th {
     text-align: center;
     border-collapse: collapse;
-    padding: 5px;
+    padding: 5px 10px;
     border: 1px solid black;
-    margin: 10px;
+    vertical-align: middle;
+}
+
+pre {
+    font-size: 13px;
+    color: black;
+    margin: 0;
 }
 
 span.removed {
     color: red;
-    font-size: 60%;
+    font-size: 90%;
 }

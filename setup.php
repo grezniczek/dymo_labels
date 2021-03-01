@@ -84,6 +84,8 @@ class setupPluginPage {
 foreach($labels as $l) {
     print "<p><a href=\"{$fw->getUrl("public.php", true)}&template={$l["id"]}&auto&range=R1:1-5&T_CODE=A9X24HK3&T_TEXT=Copy {R1}/5\">{$l["name"]}</a></p>";
 }
+print "<p><a href=\"{$fw->getUrl("public.php", true)}&template=5a8e9ffc-1221-4046-87c8-7f0ebb80fdb4&T_CODE=12345678&T_TEXT=Text&T_DATE=30.01.2021&DM_DMLABEL=1234567&R_DMCAP&T_CODECAP=1234\\n6789&T_PROJECT=BBMHH&range=COPY:1-3\">BBMHH Test Label</a></p>";
+
 ?>
 
 <script>$(function() { window.ExternalModules.DYMOLabelConfig_init(<?=json_encode($configSettings)?>) });</script>

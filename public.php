@@ -34,7 +34,8 @@ class publicEndpoint
             // POST - expecting JSON payload
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
-        } else if ($method === 'GET') {
+        } 
+        else if ($method === 'GET') {
             // GET - parse parameters
             $kvPairs = array();
             $template = null;
@@ -157,7 +158,6 @@ class publicEndpoint
             );
         }
 
-
         $labels = array();
 
         // Perform some checks:
@@ -185,6 +185,7 @@ class publicEndpoint
             "strings" => array(
                 "noPrinters" => $fw->tt("pp_noprinters"),
                 "noLabels" => $fw->tt("pp_nolabels"),
+                "removed" => $fw->tt("pp_removed"),
             ),
             "labels" => $labels,
             "print" => $data,
@@ -210,59 +211,64 @@ class publicEndpoint
 
 <body>
     <div class="container">
-        <h3><?= $fw->tt("module_name") ?></h3>
-        <div class="card border-danger printers-card">
-            <div class="card-header">
-                <?= $fw->tt("pp_printers") ?>
-                <button class="float-right btn btn-xs btn-link" style="padding:0px;" data-command="refresh" data-toggle="tooltip" data-placement="top" title="<?= $fw->tt("pp_refresh") ?>"><i class="fas fa-redo-alt fa-xs"></i></button>
-            </div>
-            <div class="card-body"id="prlist">
-                <table id="printers" class="printers table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
-                    <tr class="printer-template">
-                        <td class="printer-select">
-                            <input type="radio" name="printer" id="" value="" disabled>
-                        </td>
-                        <td class="printer-info">
-                            <label class="printer-name" for="">Printer</label>
-                            <span class="twinturbo">
-                                &mdash; <i><?= $fw->tt("pp_roll") ?></i> 
-                                <input class="printer-roll-left" type="radio" name="printer-roll" id="" value="l" checked>
-                                <label class="printer-roll-left" for=""><?= $fw->tt("pp_roll_left") ?></label>
-                                <input class="printer-roll-right" type="radio" name="printer-roll" id="" value="r">
-                                <label class="printer-roll-right" for=""><?= $fw->tt("pp_roll_right") ?></label>
-                            </span>
-                        </td>
-                        <td class="printer-status">
-                            <span class="printer-offline"><?= $fw->tt("pp_offline") ?></span>
-                        </td>
-                    </tr>
-                    <tr class="no-printer">
-                        <td class="text-danger" colspan="3"><?= $fw->tt("pp_noprinters") ?></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        <div class="mt-3">
-            <button class="btn btn-success btn-md" data-command="print"><?= $fw->tt("pp_print") ?></button>
-            <button class="btn btn-link" data-command="calibrate"><?= $fw->tt("pp_calibrate") ?></button>
-        </div>
+        <h3><?= $fw->tt("module_name") ?> <i class="fas fa-spinner fa-spin initializing"></i></h3>
         <div id="error" style="color:red"></div>
-        <div class="card border-danger labels-card mt-3">
-            <div class="card-header">
-                <?= $fw->tt("pp_labels") ?>
+        <div class="initialized">
+            <div class="card border-danger printers-card">
+                <div class="card-header">
+                    <?= $fw->tt("pp_printers") ?>
+                    <button class="float-right btn btn-xs btn-link" style="padding:0px;" data-command="refresh" data-toggle="tooltip" data-placement="top" title="<?= $fw->tt("pp_refresh") ?>"><i class="fas fa-redo-alt fa-xs"></i></button>
+                </div>
+                <div class="card-body"id="prlist">
+                    <table id="printers" class="printers table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
+                        <tr class="printer-template">
+                            <td class="printer-select">
+                                <input type="radio" name="printer" id="" value="" disabled>
+                            </td>
+                            <td class="printer-info">
+                                <label class="printer-name" for="">Printer</label>
+                                <span class="twinturbo">
+                                    &mdash; <i><?= $fw->tt("pp_roll") ?></i> 
+                                    <input class="printer-roll-left" type="radio" name="printer-roll" id="" value="l" checked>
+                                    <label class="printer-roll-left" for=""><?= $fw->tt("pp_roll_left") ?></label>
+                                    <input class="printer-roll-right" type="radio" name="printer-roll" id="" value="r">
+                                    <label class="printer-roll-right" for=""><?= $fw->tt("pp_roll_right") ?></label>
+                                </span>
+                            </td>
+                            <td class="printer-status">
+                                <span class="printer-offline"><?= $fw->tt("pp_offline") ?></span>
+                            </td>
+                        </tr>
+                        <tr class="no-printer">
+                            <td class="text-danger" colspan="3"><?= $fw->tt("pp_noprinters") ?></td>
+                        </tr>
+                    </table>
+                </div>
             </div>
-            <div class="card-body">
-                <table id="labels" class="labels table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
-                    <tr class="no-labels">
-                        <td>
-                            <span class="text-danger"><?= $fw->tt("pp_nolabels") ?></span>
-                        </td>
-                    </tr>
-                </table>
+            <div class="mt-3">
+                <button class="btn btn-success btn-md" data-command="print"><?= $fw->tt("pp_print") ?></button>
+                <button class="btn btn-link" data-command="calibrate"><?= $fw->tt("pp_calibrate") ?></button>
             </div>
-        </div>
-        <div class="dlem-copy">
-            REDCap EM Version <?= $m->VERSION ?> &mdash; &copy;<?php print date('Y'); ?> Dr. Günther Rezniczek
+            <div class="card border-danger labels-card mt-3">
+                <div class="card-header">
+                    <?= $fw->tt("pp_labels") ?>
+                </div>
+                <div class="card-body">
+                    <table class="labels table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
+                        <thead class="labels-header"></thead>
+                        <tbody class="labels-body">
+                            <tr class="no-labels">
+                                <td>
+                                    <span class="text-danger"><?= $fw->tt("pp_nolabels") ?></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="dlem-copy">
+                REDCap EM Version <?= $m->VERSION ?> &mdash; &copy;<?php print date('Y'); ?> Dr. Günther Rezniczek
+            </div>
         </div>
     </div>
 
