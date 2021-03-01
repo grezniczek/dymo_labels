@@ -114,6 +114,7 @@
  * @typedef DYMOLabelFramework
  * @type {{
  *  getPrinters: function():DYMOLabelFramework_PrinterInfo[]
+ *  init: function()
  * }}
  */
 

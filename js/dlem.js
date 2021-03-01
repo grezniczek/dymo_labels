@@ -592,7 +592,7 @@ var selectedPrinter = null
  * Sets the UI state (highlights, messages, enable/disable buttons)
  */
 function setUIState() {
-    if (selectPrinter == null) {
+    if (selectedPrinter == null) {
         $('tr.no-printer').show()
         $('.printers-card').addClass('border-danger')
     }
@@ -609,7 +609,7 @@ function setUIState() {
         $('.labels-card').removeClass('border-danger')
     }
     $('[data-command=print]').prop('disabled', 
-        selectPrinter == null || 
+        selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined)
     $('[data-command=calibrate').prop('disabled', 
