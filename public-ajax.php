@@ -3,9 +3,9 @@
 use DE\RUB\REDCapEMLib\Crypto;
 
 /**
- * This is the AJAX endpoint for all authenticated module operations
+ * This is the AJAX endpoint for all public (non-authenticated) module operations
  */
-class ajaxEndpoint { 
+class ajaxEndpointNoAuth { 
     
     /**
      * Processes the request.
@@ -32,42 +32,39 @@ class ajaxEndpoint {
         if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $crypto = Crypto::init($m);
         $verification = $crypto->decrypt($data["verification"]);
-        $verified = $verification && $verification["pid"] == $GLOBALS["Proj"]->project_id && $verification["userid"] == $GLOBALS["userid"];
+        $verified = $verification && $verification["pid"] == $GLOBALS["Proj"]->project_id && $verification["noauth"] == "noauth";
         if ($verified) {
             switch ($data["action"]) {
-                case "add-label":
+                case "store-calibration":
                     $payload = json_decode($data["payload"], true);
-                    $id = $m->addLabel($payload);
-                    $response = array (
-                        "success" => true,
-                        "id" => $id,
-                    );
-                break;
-                case "get-labels":
-                    $labels = $m->getLabels();
-                    $response = array (
-                        "success" => true,
-                        "count" => count($labels),
-                        "labels" => $labels,
-                    );
-                break;
-                case "delete-label":
-                    $payload = json_decode($data["payload"], true);
-                    $error = $m->deleteLabel($payload);
-                    if (strlen($error)) {
-                        $response = array (
-                            "success" => false,
-                            "error" => $error,
-                        );
-                    }
-                    else {
+                    try {
+                        $m->storeCalibration($payload);
                         $response = array (
                             "success" => true,
-                            "id" => $payload,
+                        );
+                    } 
+                    catch (\Throwable $err) {
+                        $response = array (
+                            "success" => false,
+                            "error" => $err->getMessage(),
                         );
                     }
                 break;
-                default:
+                case "get-calibration":
+                    $payload = json_decode($data["payload"], true);
+                    try {
+                        $calData = $m->getCalibration($payload);
+                        $response = array (
+                            "success" => true,
+                            "calData" => $calData
+                        );
+                    } 
+                    catch (\Throwable $err) {
+                        $response = array (
+                            "success" => false,
+                            "error" => $err->getMessage(),
+                        );
+                    }
                 break;
             }
             // Update timestamp.
@@ -78,4 +75,4 @@ class ajaxEndpoint {
         print json_encode($response);
     }
 }
-ajaxEndpoint::process($module);
+ajaxEndpointNoAuth::process($module);

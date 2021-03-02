@@ -29,7 +29,7 @@ class setupPluginPage {
         $m->includeJS("js/dlem.js");
 
         // Ajax Setup.
-        $crypto = Crypto::init();
+        $crypto = Crypto::init($m);
         $ajax = array(
             "verification" => $crypto->encrypt(array(
                 "random" => $crypto->genKey(),

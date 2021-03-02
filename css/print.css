@@ -111,3 +111,7 @@ span.removed {
     color: red;
     font-size: 90%;
 }
+
+div.label-preview {
+    text-align: center;
+}

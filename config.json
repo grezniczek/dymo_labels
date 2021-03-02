@@ -32,7 +32,8 @@
     },
     "no-auth-pages": [
         "post",
-        "public"
+        "public",
+        "public-ajax"
     ],
     "system-settings": [
         {
@@ -56,6 +57,12 @@
             "type": "checkbox"
         },
         {
+            "key": "skip-printing",
+            "name": "Simulate printing (i.e. do not actually print)",
+            "tt_name": "config_skipprinting",
+            "type": "checkbox"
+        },
+        {
             "key": "allow-public",
             "name": "Allow anonymous access to the public plugin page",
             "tt_name": "config_allow_public",
@@ -71,6 +78,12 @@
             "key": "allow-download",
             "name": "Allow users to download label files",
             "tt_name": "config_allow_download",
+            "type": "checkbox"
+        },
+        {
+            "key": "allow-autoprint",
+            "name": "Allow the auto print flag for public labels",
+            "tt_name": "config_allow_auto",
             "type": "checkbox"
         }
     ],

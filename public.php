@@ -1,6 +1,8 @@
-<?php
+<?php namespace DE\RUB\DYMOLabelsExternalModule;
 
-namespace DE\RUB\DYMOLabelsExternalModule;
+use DE\RUB\REDCapEMLib\Crypto;
+
+if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
 
 /**
  * This is the public project endpoint
@@ -34,8 +36,7 @@ class publicEndpoint
             // POST - expecting JSON payload
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
-        } 
-        else if ($method === 'GET') {
+        } else if ($method === 'GET') {
             // GET - parse parameters
             $kvPairs = array();
             $template = null;
@@ -176,12 +177,28 @@ class publicEndpoint
         }
 
         $data["errors"] = $errors;
+        $data["skipPrinting"] = $m->getProjectSetting("skip-printing") == true;
+        $autoThreshold = 5;
+        $allowAuto = $m->getProjectSetting("allow-autoprint") == true && count($data["labels"]) <= $autoThreshold;
+        $data["auto"] = $data["auto"] && $allowAuto;
+
+        // Ajax Setup.
+        $crypto = Crypto::init($m);
+        $ajax = array(
+            "verification" => $crypto->encrypt(array(
+                "random" => $crypto->genKey(),
+                "noauth" => "noauth",
+                "pid" => $pid,
+                "timestamp" => time(),
+            )),
+            "endpoint" => $fw->getUrl("public-ajax.php", true)
+        );
 
         // Prepare configuration data
         $configSettings = array(
             "debug" => $fw->getProjectSetting("js-debug") == true,
             "canDownload" => false,
-            "ajax" => "",
+            "ajax" => $ajax,
             "strings" => array(
                 "noPrinters" => $fw->tt("pp_noprinters"),
                 "noLabels" => $fw->tt("pp_nolabels"),
@@ -219,16 +236,16 @@ class publicEndpoint
                     <?= $fw->tt("pp_printers") ?>
                     <button class="float-right btn btn-xs btn-link" style="padding:0px;" data-command="refresh" data-toggle="tooltip" data-placement="top" title="<?= $fw->tt("pp_refresh") ?>"><i class="fas fa-redo-alt fa-xs"></i></button>
                 </div>
-                <div class="card-body"id="prlist">
+                <div class="card-body" id="prlist">
                     <table id="printers" class="printers table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
                         <tr class="printer-template">
                             <td class="printer-select">
-                                <input type="radio" name="printer" id="" value="" disabled>
+                                <input type="radio" name="printer" id="" value="">
                             </td>
                             <td class="printer-info">
                                 <label class="printer-name" for="">Printer</label>
                                 <span class="twinturbo">
-                                    &mdash; <i><?= $fw->tt("pp_roll") ?></i> 
+                                    &mdash; <i><?= $fw->tt("pp_roll") ?></i>
                                     <input class="printer-roll-left" type="radio" name="printer-roll" id="" value="l" checked>
                                     <label class="printer-roll-left" for=""><?= $fw->tt("pp_roll_left") ?></label>
                                     <input class="printer-roll-right" type="radio" name="printer-roll" id="" value="r">
@@ -272,39 +289,74 @@ class publicEndpoint
         </div>
     </div>
 
-    <div id="calibrate" class="hidden">
-        <p>
-            Zahlen sind Vielfache von 0.1 mm, d.h. ein Wert von 10 bedeutet eine Korrektur um 1 mm. Negative Werte
-            bedeuten eine Verschiebung nach links bzw. oben. Der zulässige Wertebereich ist -30 bis +30.
-        </p>
-        <form>
-            <table>
-                <tr>
-                    <td>Delta X</td>
-                    <td><input type="number" min="-30" max="30" name="cal_dx" id="cal_dx" /></td>
-                </tr>
-                <tr>
-                    <td>Delta Y</td>
-                    <td><input type="number" min="-30" max="30" name="cal_dy" id="cal_dy" /></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                        <input type="hidden" id="cal_name" name="cal_name" />
-                        <input type="button" value="Speichern" onclick="saveCalibration();" />
-                    </td>
-                </tr>
-            </table>
-        </form>
-    </div>
+
     <script>
         $(function() {
             window.ExternalModules.DYMOLabelPrint_init(<?= json_encode($configSettings) ?>)
             $('[data-toggle=tooltip]').tooltip()
         });
     </script>
-</body>
 
+    <!-- Modal: Preview -->
+    <div class="modal fade" id="modal-preview" tabindex="-1" role="dialog" aria-labelledby="modal-preview-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title dlem-preview-title" id="modal-preview-title">
+                        <b><?= $fw->tt("pp_preview") ?></b>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="<?= $fw->tt("dialog_close") ?>">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body label-preview">
+                    <img class="label-preview" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><?= $fw->tt("dialog_close") ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Calibrate -->
+    <div class="modal fade" id="modal-calibrate" tabindex="-1" role="dialog" aria-labelledby="modal-calibrate-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title dlem-calibrate-title" id="modal-calibrate-title">
+                        <b><?= $fw->tt("pp_calibrate") ?></b>
+                    </h5>
+                    <button type="button" class="close" data-modal-action="cancel" aria-label="<?= $fw->tt("dialog_close") ?>">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><?= $fw->tt("pp_calibration_info") ?></p>
+                    <form>
+                        <div class="form-group">
+                            <label for="cal_dx"><?= $fw->tt("pp_offsetdx") ?></label>
+                            <input type="number" min="-30" max="30" class="form-control" id="offset-dx" value >
+                        </div>
+                        <div class="form-group">
+                            <label for="cal_dy"><?= $fw->tt("pp_offsetdy") ?></label>
+                            <input type="number" min="-30" max="30" class="form-control" id="offset-dy" value >
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-modal-action="cancel">
+                        <?= $fw->tt("dialog_cancel") ?>
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm" data-modal-action="apply" data-dismiss="modal">
+                        <?= $fw->tt("dialog_apply") ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
 </html>
 <?php
     }

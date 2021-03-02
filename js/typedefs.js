@@ -10,6 +10,7 @@
  * @typedef DYMOLabelConfig
  * @type {{
  *  debug: boolean
+ *  skipPrinting: boolean
  *  canDownload: boolean
  *  ajax: DYMOLabelAjax
  *  strings: DYMOLabelStrings
@@ -40,6 +41,7 @@
  *  auto: boolean
  *  labels: DYMOLabelItem[][]
  *  errors: string[]
+ *  skipPrinting: boolean
  * }}
  */
 
@@ -126,6 +128,14 @@
  *  getPrinters: function():DYMOLabelFramework_PrinterInfo[]
  *  init: function()
  *  checkEnvironment: function():DYMOLabelFramework_Status
+ *  openLabelXml: function(string):DYMOLabelFramework_Label
+ *  printLabel: function(string, string, string, string)
+ *  renderLabel: function(string, string, string)
+ *  createLabelRenderParamsXml: function(DYMOLabelFramework_RenderParams):string
+ *  createLabelWriterPrintParamsXml: function(DYMOLabelFramework_PrintParams):string
+ *  FlowDirection: { LeftToRight: string, RightToLeft: string }
+ *  LabelWriterPrintQuality: { Text: string, BarcodeAndGraphics: string, Auto: string }
+ *  TwinTurboRoll: { Left: string, Right: string, Auto: string }
  * }}
  */
 
@@ -136,6 +146,50 @@
  *  isBrowserSupported: boolean
  *  isFrameworkInstalled: boolean
  *  isWebServicePresent: boolean
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelFramework_PrintParams
+ * @type {{
+ *  copies?: Number 
+ *  jobTitle?: string
+ *  flowDirection?: string
+ *  printQuality?: string
+ *  twinTurboRoll?: string
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelFramework_Color
+ * @type {{
+ *  alpha: Number 
+ *  red: Number 
+ *  green: Number 
+ *  blue: Number 
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelFramework_RenderParams
+ * @type {{
+ *  labelColor?: DYMOLabelFramework_Color
+ *  shadowColor?: DYMOLabelFramework_Color
+ *  shadowDepth?: Number
+ *  flowDirection?: string
+ *  pngUseDisplayResolution?: boolean
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelFramework_Label
+ * @type {{
+ *  isValidLabel: boolean
+ *  isDCDLabel: boolean
+ *  isDLSLabel: boolean
+ *  print: function(string, string, string)
+ *  render: function(string, string)
+ *  setObjectText: function(string, string)
  * }}
  */
 
@@ -152,6 +206,7 @@
  *  printerType: string
  *  printerUri: string
  *  calData: DYMOLabelCalibration
+ *  listIndex: string
  * }}
  */
 

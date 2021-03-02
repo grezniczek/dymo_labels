@@ -155,4 +155,41 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         return (array_key_exists($id, $labels) ? $labels[$id] : false);
     }
 
+    function storeCalibration($data) {
+        $labels = $this->getLabels();
+        $id = $data["id"];
+        $printer = $data["printer"];
+        if (array_key_exists($id, $labels) && strlen($printer)) {
+            $md5 = md5($printer);
+            $key = "cal:{$id}:{$md5}";
+            $cal = $data["cal"];
+            $this->setSystemSetting($key, $cal);
+        }
+        else {
+            throw new Exception($this->tt("error_labelnotfound"));
+        }
+    }
+
+    function getCalibration($data) {
+        $calData = array();
+        $labels = $this->getLabels();
+        $id = $data["id"];
+        if (!array_key_exists($id, $labels)) {
+            throw new Exception($this->tt("error_labelnotfound"));
+        }
+        if (!is_array($data["printers"])) {
+            throw new Exception("No printers specified.");
+        }
+        foreach ($data["printers"] as $printer) {
+            $md5 = md5($printer);
+            $key = "cal:{$id}:{$md5}";
+            $cal = $this->getSystemSetting($key);
+            if ($cal == null) {
+                $cal = array ( "dx" => 0, "dy" => 0 );
+            }
+            $calData[$printer] = $cal;
+        }
+        return $calData;
+    }
+
 }

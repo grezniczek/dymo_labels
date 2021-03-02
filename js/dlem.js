@@ -31,6 +31,8 @@ var labelsTable;
 /** @type {DYMOLabelFramework_PrinterInfo[]} */
 var printers = []
 
+/** @type {boolean} Indicates whether a print process is currently ongoing */
+var printing = false
 
 //#endregion
 
@@ -305,6 +307,15 @@ function printLabel(label) {
 //#region UI & Ajax Helper
 
 /**
+ * Logs an error to the console
+ * @param {string} msg 
+ */
+function logError(msg) {
+    var prompt = 'DYMO Label EM - '
+    console.error(prompt + msg)
+}
+
+/**
  * Log to the console when in debug mode
  */
 function log() {
@@ -524,20 +535,27 @@ EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
             status.isWebServicePresent) {
             
             setupPrinters()
-            setupLabels()
-
-            $('button[data-command=refresh]').on('click', setupPrinters)
-            $('input[name=printer]').on('change', selectPrinter)
-
-            setUIState()
-
-            $('.initialized').show(200)
+            .then(function() {
+                setupLabels()
+    
+                $('[data-command=refresh]').on('click', setupPrinters)
+                $('[data-command=print]').on('click', printLabels)
+                $('[data-command=calibrate]').on('click', calibrate)
+                $('input[name=printer]').on('change', selectPrinter)
+    
+                setUIState()
+    
+                $('.initialized').show(200)
+                $('.initializing').hide(200)
+                if (config.print.auto) {
+                    printLabels()
+                }
+            })
         }
         else {
             $('#error').html(status.errorDetails)
+            $('.initializing').hide(200)
         }
-    
-        $('.initializing').hide(200)
     }, 100);
 }
 
@@ -647,10 +665,15 @@ function setUIState() {
         $('[data-command="select-all"]').prop('checked', false)
     }
     $('[data-command=print]').prop('disabled', 
+        printing ||
         selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined ||
         n == 0)
+    $('[data-command=preview]').prop('disabled', 
+        selectedPrinter == null || 
+        config.print.labels.length == 0 || 
+        config.labels[config.print.template] == undefined)
 }
 /**
  * Selects a printer
@@ -660,61 +683,67 @@ function selectPrinter(e) {
     var idx = $(e.target).val().toString()
     log('Selected printer #' + idx)
     selectedPrinter = printers[idx]
+    setUIState()
 }
 
 /**
  * Sets up the printer selection UI (initially and after refresh)
  */
 function setupPrinters() {
-    printers = DLF.getPrinters()
-    selectedPrinter = null
-    
-    // Clone template and clear table
-    var $table = $('table.printers')
-    $table.find('tr.printer').remove()
-    if (printers.length) {
-        for (var i = 0; i < printers.length; i++) {
-            var printer = printers[i]
-            var $row = $table.find('tr.printer-template').clone()
-            $row.removeClass('printer-template').addClass('printer')
-            var active = selectedPrinter == null && printer.isConnected
-            if (active) {
-                selectedPrinter = printers[i]
+    return new Promise(function(resolve, reject) {
+        printers = DLF.getPrinters()
+        selectedPrinter = null
+        
+        // Clone template and clear table
+        var $table = $('table.printers')
+        $('tr.no-printer').show()
+        $table.find('tr.printer').remove()
+        if (printers.length) {
+            for (var i = 0; i < printers.length; i++) {
+                var printer = printers[i]
+                printer.listIndex = i.toString()
+                var $row = $table.find('tr.printer-template').clone()
+                $row.removeClass('printer-template').addClass('printer')
+                $row.css('display', 'none')
+                var active = selectedPrinter == null && printer.isConnected
+                if (active) {
+                    selectedPrinter = printers[i]
+                }
+                $row.find('input[name=printer]')
+                    .prop('id', 'printer-' + i)
+                    .prop('checked', active)
+                    .val(i)
+                $row.find('label.printer-name')
+                    .attr('for', 'printer-' + i)
+                    .text(printer.name)
+                if (printer.isTwinTurbo) {
+                    $row.find('input.printer-roll-left')
+                        .attr('name', 'printer-roll-' + i)
+                        .attr('id', 'printer-roll-left-' + i)
+                        .prop('checked', true)
+                    $row.find('label.printer-roll-left').attr('for', 'printer-roll-left-' + i)
+                    $row.find('input.printer-roll-right')
+                        .attr('name', 'printer-roll-' + i)
+                        .attr('id', 'printer-roll-right-' + i)
+                    $row.find('label.printer-roll-right').attr('for', 'printer-roll-right-' + i)
+                }
+                else {
+                    $row.find('span.twinturbo').hide()
+                }
+                if (printer.isConnected) {
+                    $row.find('span.printer-offline').hide()
+                }
+                $table.append($row)
             }
-            $row.find('input[name=printer]')
-                .prop('disabled', !printer.isConnected)
-                .prop('id', 'printer-' + i)
-                .prop('checked', active)
-                .val(i)
-            $row.find('label.printer-name')
-                .attr('for', 'printer-' + i)
-                .text(printer.name)
-            if (printer.isTwinTurbo) {
-                $row.find('input.printer-roll-left')
-                    .attr('name', 'printer-roll-' + i)
-                    .attr('id', 'printer-roll-left-' + i)
-                    .prop('checked', true)
-                $row.find('label.printer-roll-left').attr('for', 'printer-roll-left-' + i)
-                $row.find('input.printer-roll-right')
-                    .attr('name', 'printer-roll-' + i)
-                    .attr('id', 'printer-roll-right-' + i)
-                $row.find('label.printer-roll-right').attr('for', 'printer-roll-right-' + i)
-            }
-            else {
-                $row.find('span.twinturbo').hide()
-            }
-            if (printer.isConnected) {
-                $row.find('span.printer-offline').hide()
-
-            }
-            $table.append($row)
         }
-    }
-    var done = function() {
-        setUIState()
-        log('Printers found:', printers)
-    }
-    getPrinterCalibration().then(done, done)
+        var done = function() {
+            $table.find('tr.printer').show()
+            setUIState()
+            log('Printers found:', printers)
+            resolve()
+        }
+        getPrinterCalibration().then(done, done)
+    })
 }
 
 /**
@@ -791,9 +820,8 @@ function setupLabels() {
         $row.on('click', function(e) {
             if (e.target.hasAttribute('data-label-include')) {
                 // Checkbox
-                return
             }
-            if (e.target.hasAttribute('data-command') || $(e.target).parents('[data-command]').length) {
+            else if (e.target.hasAttribute('data-command') || $(e.target).parents('[data-command]').length) {
                 // Preview button
                 previewLabel(Number.parseInt(e.currentTarget.getAttribute('data-label')))
             }
@@ -869,6 +897,55 @@ function emptyPng() {
     return png;
 }
 
+
+function printLabels() {
+    // Disable button
+    $('[data-command=print]').prop('disabled', true)
+    // Get calibration data
+    var calData = selectedPrinter.calData
+    /** @type {DYMOLabelFramework_PrintParams} */
+    var printParams = {
+        copies: 1,
+        printQuality: DLF.LabelWriterPrintQuality.Text,
+        flowDirection: DLF.FlowDirection.LeftToRight
+    }
+    if (selectedPrinter.isTwinTurbo) {
+        var left = $('#printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
+        printParams.twinTurboRoll = left ? DLF.TwinTurboRoll.Left : DLF.TwinTurboRoll.Right
+    }
+    // Print all checked labels
+    var $labels = $('input[data-label-include]')
+    for (var i = 0; i < $labels.length; i++) {
+        var $chk = $($labels[i])
+        if ($chk.prop('checked')) {
+            var labelNo = Number.parseInt($chk.attr('data-label-include'))
+            var labelData = config.print.labels[labelNo]
+            printParams.jobTitle = 'Label #' + (labelNo + 1)
+            try {
+                var xml = prepareLabelXml(labelData, calData)
+                var label = DLF.openLabelXml(xml)
+                setLabelObjects(label, labelData)
+                var printParamsXml = DLF.createLabelWriterPrintParamsXml(printParams)
+                if (!config.print.skipPrinting) {
+                    log('Printing \'' + printParams.jobTitle + '\':', labelData)
+                    label.print(selectedPrinter.name, printParamsXml, null)
+                }
+                else {
+                    log('Printing (simulated) \'' + printParams.jobTitle + '\':', labelData)
+                }
+                $chk.prop('checked', false)
+            }
+            catch (err) {
+
+            }
+        }
+    }
+    printing = false
+    setUIState()
+}
+
+
+
 /**
  * 
  * @param {Number} labelNo 
@@ -878,9 +955,51 @@ function previewLabel(labelNo) {
     log('Preview label:', labelData)
 
     var xml = prepareLabelXml(labelData, null)
-
+    var label = DLF.openLabelXml(xml)
+    setLabelObjects(label, labelData)
+    var renderParamsXml = DLF.createLabelRenderParamsXml({
+        labelColor: { 
+            alpha: 255,
+            red: 230,
+            green: 230,
+            blue: 230
+        },
+        shadowDepth: 0,
+        flowDirection: DLF.FlowDirection.LeftToRight,
+        pngUseDisplayResolution: false
+    })
+    var png = label.render(renderParamsXml, selectedPrinter.name)
+    $('img.label-preview').attr('src', 'data:image/png;base64,' + png)
+    $('#modal-preview').modal('show')
 }
 
+/**
+ * 
+ * @param {DYMOLabelFramework_Label} label 
+ * @param {DYMOLabelItem[]} labelData
+ * @returns {string[]}
+ */
+function setLabelObjects(label, labelData) {
+    var errors = []
+    for (var i = 0; i < labelData.length; i++) {
+        var data = labelData[i]
+        try {
+            switch(data.type) {
+                case 'T':
+                    label.setObjectText(data.name, data.value)
+                    break
+                case 'DM':
+                case 'QR':
+                    label.setObjectText(data.name, data.png)
+                    break
+            }
+        }
+        catch { 
+            errors.push(data.name)
+        }
+    }
+    return errors
+}
 
 /**
  * 
@@ -920,15 +1039,6 @@ function prepareLabelXml(labelData, calData) {
     return (new XMLSerializer()).serializeToString(doc)
 }
 
-function processPrintQueue() {
-    
-    // Get calibration data
-    var cal = selectedPrinter.calData
-
-    
-
-}
-
 
 
 /**
@@ -936,13 +1046,60 @@ function processPrintQueue() {
  */
 function getPrinterCalibration() {
     return new Promise(function(resolve, reject) {
-        // TODO
         // Get data from AJAX based on available printers and the current label
-        // Dummy code:
-        for (var i = 0; i < printers.length; i++) {
-            printers[i].calData = { dx: 0, dy: 0 }
+        var payload = {
+            printers: [],
+            id: config.print.template
         }
-        resolve()
+        for (var i = 0; i < printers.length; i++) {
+            payload.printers.push(printers[i].name)
+        }
+        submitData('get-calibration', payload)
+        .then(function(response) {
+            for (var i = 0; i < printers.length; i++) {
+                var name = printers[i].name
+                var cal = response.calData[name] || { dx: 0, dy: 0 }
+                printers[i].calData = cal
+            }
+            resolve()
+        })
+        .catch(function(err) {
+            log('Failed to get calibration data: ' + err)
+            for (var i = 0; i < printers.length; i++) {
+                printers[i].calData = { dx: 0, dy: 0 }
+            }
+            resolve()
+        })
+    })
+}
+
+function calibrate() {
+    // Update values
+    $('#offset-dx').val(selectedPrinter.calData.dx)
+    $('#offset-dy').val(selectedPrinter.calData.dy)
+    dialog('#modal-calibrate', {}, function($modal, verb) {
+        return new Promise(function(resolve, reject) {
+            if (verb == 'apply') {
+                var dx = Number.parseInt($('#offset-dx').val().toString())
+                var dy = Number.parseInt($('#offset-dy').val().toString())
+                selectedPrinter.calData = { dx: dx, dy: dy }
+                var payload = {
+                    printer: selectedPrinter.name,
+                    id: config.print.template,
+                    cal: {
+                        dx: dx,
+                        dy: dy
+                    }
+                }
+                log('Set calibration:', payload)
+                // Store on server
+                submitData('store-calibration', payload)
+                .catch(function(err) {
+                    logError(err)
+                })
+            }
+            resolve(verb)
+        })
     })
 }
 
