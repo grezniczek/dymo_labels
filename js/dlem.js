@@ -961,13 +961,11 @@ function printLabels() {
             var labelData = config.print.labels[labelNo]
             printParams.jobTitle = 'Label #' + (labelNo + 1)
             try {
-                var xml = prepareLabelXml(labelData, calData)
-                var label = DLF.openLabelXml(xml)
-                setLabelObjects(label, labelData)
+                var labelXml = prepareLabelXml(labelData, calData)
                 var printParamsXml = DLF.createLabelWriterPrintParamsXml(printParams)
                 if (!config.print.skipPrinting) {
                     log('Printing \'' + printParams.jobTitle + '\':', labelData)
-                    label.print(selectedPrinter.name, printParamsXml, null)
+                    DLF.printLabel(selectedPrinter.name, printParamsXml, labelXml, null)
                 }
                 else {
                     log('Printing (simulated) \'' + printParams.jobTitle + '\':', labelData)
@@ -992,10 +990,7 @@ function printLabels() {
 function previewLabel(labelNo) {
     var labelData = config.print.labels[labelNo]
     log('Preview label:', labelData)
-    var xml = prepareLabelXml(labelData, null)
-    log(xml)
-    var label = DLF.openLabelXml(xml)
-    setLabelObjects(label, labelData)
+    var labelXml = prepareLabelXml(labelData, null)
     var renderParamsXml = DLF.createLabelRenderParamsXml({
         labelColor: { 
             alpha: 255,
@@ -1007,7 +1002,7 @@ function previewLabel(labelNo) {
         flowDirection: DLF.FlowDirection.LeftToRight,
         pngUseDisplayResolution: false
     })
-    var png = label.render(renderParamsXml, selectedPrinter.name)
+    var png = DLF.renderLabel(labelXml, renderParamsXml, selectedPrinter.name)
     $('img.label-preview').attr('src', 'data:image/png;base64,' + png)
     $('#modal-preview').modal('show')
 }
@@ -1052,13 +1047,11 @@ function prepareLabelXml(labelData, calData) {
     calData = calData || { dx: 0, dy: 0 }
     var xml = config.labels[config.print.template].xml
     var label = DLF.openLabelXml(xml)
-    var doc = $.parseXML(xml)
-
     if (label.isDLSLabel()) {
         // Conversion of 1/10mm to twips = 1440/254
         var dx = 1440 * calData.dx / 254
         var dy = 1440 * calData.dy / 254;
-        $(doc).find('Bounds').each(function (i, el) {
+        $(label._doc).find('Bounds').each(function (i, el) {
             var x = Number(el.getAttribute('X'))
             var y = Number(el.getAttribute('Y'))
             x = x + dx;
@@ -1069,7 +1062,7 @@ function prepareLabelXml(labelData, calData) {
         // Remove label objects marked 'R'
         for (var i = 0; i < labelData.length; i++) {
             if (labelData[i].type == 'R') {
-                $(doc).find('Name').each(function(idx, el) {
+                $(label._doc).find('Name').each(function(idx, el) {
                     if (el.textContent == labelData[i].name) {
                         $(el.parentNode.parentNode).remove()
                     }
@@ -1081,12 +1074,12 @@ function prepareLabelXml(labelData, calData) {
         // Conversion of 1/10mm to inches
         var dx = calData.dx / 254
         var dy = calData.dy / 254;
-        $(doc).find('ObjectLayout DYMOPoint X').each(function (i, el) {
+        $(label._doc).find('ObjectLayout DYMOPoint X').each(function (i, el) {
             var x = Number.parseFloat(el.textContent)
             x = x + dx
             el.textContent = x.toString()
         })
-        $(doc).find('ObjectLayout DYMOPoint Y').each(function (i, el) {
+        $(label._doc).find('ObjectLayout DYMOPoint Y').each(function (i, el) {
             var y = Number.parseFloat(el.textContent)
             y = y + dy
             el.textContent = y.toString()
@@ -1094,7 +1087,7 @@ function prepareLabelXml(labelData, calData) {
         // Remove label objects marked 'R'
         for (var i = 0; i < labelData.length; i++) {
             if (labelData[i].type == 'R') {
-                $(doc).find('Name').each(function(idx, el) {
+                $(label._doc).find('Name').each(function(idx, el) {
                     if (el.textContent == labelData[i].name) {
                         $(el.parentNode).remove()
                     }
@@ -1102,7 +1095,9 @@ function prepareLabelXml(labelData, calData) {
             }
         }
     }
-    var xml = (new XMLSerializer()).serializeToString(doc)
+    setLabelObjects(label, labelData)
+    xml = label.getLabelXml()
+
     // Fix XML, otherwise the Webservice will throw
     // Color, Columns, Rows must have open/close tags
     if (label.isDCDLabel) {
