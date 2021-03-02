@@ -85,7 +85,7 @@ class publicEndpoint
                         }
                         break;
                     default:
-                        if (preg_match("/^(T|DM|QR|R)_([A-Z0-9_]+)/", trim($key), $match) === 1) {
+                        if (preg_match("/^(T|DM|QR|PNG|R)_([A-Z0-9_]+)/", trim($key), $match) === 1) {
                             $type = (strlen(trim($value)) == 0) ? "R" : $match[1];
                             $name = $match[2];
                             $kvPair = array(

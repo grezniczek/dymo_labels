@@ -119,6 +119,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             "desc" => $data["desc"],
             "xml" => $data["xml"],
             "filename" => $data["filename"],
+            "config" => $data["config"],
         );
         $key = "label-{$guid}";
         $this->setProjectSetting($key, $label);
@@ -134,6 +135,13 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         $labels = $this->getLabels();
         if (array_key_exists($id, $labels)) {
             $this->removeProjectSetting("label-{$id}");
+            // Also delete all calibration data
+            $settings = $this->getSystemSettings();
+            foreach (array_keys($settings) as $key) {
+                if (starts_with($key, "cal:{$id}")) {
+                    $this->removeSystemSetting($key);
+                }
+            }
             return "";
         }
         return $this->tt("error_labelnotfound");

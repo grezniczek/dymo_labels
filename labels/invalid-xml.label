@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DieCutLabelInvalid Version="8.0" Units="twips">
+	<PaperOrientation>Portrait</PaperOrientation>
+	<Id>LargeShipping</Id>
+	<IsOutlined>false</IsOutlined>
+	<PaperName>30256 Shipping</PaperName>

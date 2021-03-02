@@ -22,6 +22,7 @@ var addState = {
     desc: '', 
     filename: '', 
     xml: '',
+    config: {},
     valid: false
 }
 
@@ -47,6 +48,7 @@ function addNewLabel() {
         return new Promise(function(resolve, reject) {
             checkAddState()
             if (verb == 'add' && addState.valid) {
+                addState.config = generateInitialConfig()
                 submitData('add-label', addState)
                 .then(function(response) {
                     resolve(response)
@@ -85,7 +87,8 @@ function addLabelData(response) {
         name: addState.name,
         desc: addState.desc,
         filename: addState.filename,
-        xml: addState.xml
+        xml: addState.xml,
+        config: addState.config
     }
     config.labels[label.id] = label
     labelsTable.rows.add([label])
@@ -98,9 +101,36 @@ function clearAddState() {
     addState.name = ''
     addState.desc = ''
     addState.filename = ''
+    addState.config = {}
     checkAddState()
     $('#modal-addNew [data-input-control]').val('')
     fileChanged()
+}
+
+/**
+ * @returns {LabelConfig}
+ */
+function generateInitialConfig() {
+    /** @type {Object<string, LabelObjectInfo>} */
+    var objects = {}
+    var label = DLF.openLabelXml(addState.xml)
+    var list = label.getObjectNames()
+    $(label._doc).find('Name').each(function() {
+        var name = this.textContent
+        if (list.includes(name)) {
+            var isText = this.parentNode.nodeName == 'TextObject'
+            objects[name] = {
+                default: label.getObjectText(name),
+                transform: isText ? 'T' : 'PNG',
+                type: isText ? 'Text' : 'Graphic',
+                readOnly: false,
+            }
+        }
+    })
+    return {
+        public: false,
+        objects: objects
+    }
 }
 
 /**
@@ -147,14 +177,14 @@ function checkAddState() {
  */
 function verifyLabel(xml) {
     try {
-        var doc = $.parseXML(xml)
         // Verify this is a DYMO Label file
-        if ($(doc).find('DieCutLabel').length == 1) {
-            log('Verified label file: ', doc)
+        var label = DLF.openLabelXml(xml)
+        if (label.isValidLabel()) {
+            log('Label verified:', label.getObjectNames())
             return true
         }
         else {
-            log('Unable to verify label file: Missing <DieCutLabel> root element.', doc)
+            log('Unable to verify label file')
         }
     }
     catch(e) {
@@ -468,10 +498,13 @@ function submitData(action, payload) {
 
 //#region Setup
 
-EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
+EM.DYMOLabelConfig_init = function(data) {
     
     config = data
     log('Config initialized', config)
+    // @ts-ignore
+    DLF = dymo.label.framework
+    DLF.init()
 
     checkAddState()
     $('#dlem-labelfile').on('change', function() {
@@ -518,7 +551,7 @@ EM.DYMOLabelConfig_init = function(/** @type DYMOLabelConfig */ data) {
     $('textarea.autosize').textareaAutoSize()
 }
 
-EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
+EM.DYMOLabelPrint_init = function(data) {
     
     config = data
     log('Print page initializing:', config)
@@ -572,10 +605,10 @@ function renderLabelActions(id) {
         '<button class="btn btn-xs btn-secondary" data-dlem-action="print"><i class="fas fa-print"></i> ' + config.strings.actionPrint + '</button> '
     if (config.canDownload) {
         buttons += 
-        '<button class="btn btn-xs btn-secondary" data-dlem-action="download" title=""><i class="fas fa-file-download"></i></button> '
+        '<button class="btn btn-xs btn-secondary" data-dlem-action="download" title="' + config.strings.actionDownload + '"><i class="fas fa-file-download"></i></button> '
     }
     buttons += 
-        '| <button class="btn btn-xs btn-danger" data-dlem-action="delete" title="' + config.strings.actionDownload + '"><i class="far fa-trash-alt"></i></button>'
+        '| <button class="btn btn-xs btn-danger" data-dlem-action="delete" title="' + config.strings.actionDelete + '"><i class="far fa-trash-alt"></i></button>'
     return buttons
 }
 
@@ -992,6 +1025,7 @@ function setLabelObjects(label, labelData) {
         try {
             switch(data.type) {
                 case 'T':
+                case 'PNG':
                     label.setObjectText(data.name, data.value)
                     break
                 case 'DM':

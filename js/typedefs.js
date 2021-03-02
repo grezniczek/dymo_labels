@@ -73,6 +73,7 @@
  *  filename: string
  *  xml: string
  *  valid: boolean
+ *  config: LabelConfig
  * }}
  */
 
@@ -84,6 +85,25 @@
  *  desc: string
  *  filename: string
  *  xml: string
+ *  config: LabelConfig
+ * }}
+ */
+
+/**
+ * @typedef LabelConfig
+ * @type {{
+ *  public?: boolean
+ *  objects?: Object<string, LabelObjectInfo>
+ * }}
+ */
+
+/**
+ * @typedef LabelObjectInfo
+ * @type {{
+ *  type: 'Text' | 'Graphic' 
+ *  transform: 'T' | 'PNG' | 'QR' | 'DM' | 'R'
+ *  default: string
+ *  readOnly: boolean
  * }}
  */
 
@@ -184,12 +204,15 @@
 /**
  * @typedef DYMOLabelFramework_Label
  * @type {{
- *  isValidLabel: boolean
- *  isDCDLabel: boolean
- *  isDLSLabel: boolean
- *  print: function(string, string, string)
- *  render: function(string, string)
- *  setObjectText: function(string, string)
+ *  isValidLabel: function():boolean
+ *  isDCDLabel: function():boolean
+ *  isDLSLabel: function():boolean
+ *  print: function(string,string,string):void
+ *  render: function(string,string):string
+ *  setObjectText: function(string,string):void
+ *  getObjectText: function(string):string
+ *  getObjectNames: function():string[]
+ *  _doc: HTMLDocument
  * }}
  */
 
