@@ -17,10 +17,8 @@ class publicEndpoint
      */
     static function process($m)
     {
-
         $fw = $m->framework;
         $pid = $fw->getProjectId();
-        $errors = array();
 
         // Check whether access is allowed - must be in project context and public 
         if (!($pid !== null
@@ -171,12 +169,12 @@ class publicEndpoint
             $label = $m->getLabel($id);
             if ($label === false) {
                 $data["errors"][] = "Label '{$id}' does not exist.";
+                $data["labels"] = array();
             } else {
                 $labels[$id] = $label;
             }
         }
 
-        $data["errors"] = $errors;
         $data["skipPrinting"] = $m->getProjectSetting("skip-printing") == true;
         $autoThreshold = 5;
         $allowAuto = $m->getProjectSetting("allow-autoprint") == true && count($data["labels"]) <= $autoThreshold;
@@ -275,7 +273,7 @@ class publicEndpoint
                         <thead class="labels-header"></thead>
                         <tbody class="labels-body">
                             <tr class="no-labels">
-                                <td>
+                                <td class="no-labels">
                                     <span class="text-danger"><?= $fw->tt("pp_nolabels") ?></span>
                                 </td>
                             </tr>

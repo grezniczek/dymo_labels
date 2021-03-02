@@ -551,6 +551,9 @@ EM.DYMOLabelPrint_init = function(/** @type DYMOLabelConfig */ data) {
                     printLabels()
                 }
             })
+            config.print.errors.forEach(function(err) {
+                $('#error').append('<p>' + err + '</p>')
+            })
         }
         else {
             $('#error').html(status.errorDetails)
@@ -750,6 +753,9 @@ function setupPrinters() {
  * Renders the labels table
  */
 function setupLabels() {
+
+    if (config.print.labels.length < 1) return
+
     /** @type {DYMOLabelItem[]} */
     var cols = []
     /** @type {DYMOLabelItem[][]} */
