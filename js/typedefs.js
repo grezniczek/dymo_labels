@@ -212,6 +212,7 @@
  *  setObjectText: function(string,string):void
  *  getObjectText: function(string):string
  *  getObjectNames: function():string[]
+ *  getLabelXml: function():string
  *  _doc: HTMLDocument
  * }}
  */

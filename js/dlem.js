@@ -992,8 +992,8 @@ function printLabels() {
 function previewLabel(labelNo) {
     var labelData = config.print.labels[labelNo]
     log('Preview label:', labelData)
-
     var xml = prepareLabelXml(labelData, null)
+    log(xml)
     var label = DLF.openLabelXml(xml)
     setLabelObjects(label, labelData)
     var renderParamsXml = DLF.createLabelRenderParamsXml({
@@ -1048,35 +1048,80 @@ function setLabelObjects(label, labelData) {
  * @returns {string}
  */
 function prepareLabelXml(labelData, calData) {
-    
-    var doc = $.parseXML(config.labels[config.print.template].xml)
-
     // Adjust object bounds
     calData = calData || { dx: 0, dy: 0 }
-    // Conversion of 1/10mm to twips = 1440/254
-    var dx = 1440 * calData.dx / 254
-    var dy = 1440 * calData.dy / 254;
-    $(doc).find('Bounds').each(function (i, el) {
-        var x = Number(el.getAttribute('X'))
-        var y = Number(el.getAttribute('Y'))
-        x = x + dx;
-        y = y + dy;
-        el.setAttribute('X', x.toString())
-        el.setAttribute('Y', y.toString())
-    })
+    var xml = config.labels[config.print.template].xml
+    var label = DLF.openLabelXml(xml)
+    var doc = $.parseXML(xml)
 
-    // Remove label objects marked 'R'
-    for (var i = 0; i < labelData.length; i++) {
-        var label = labelData[i]
-        if (label.type == 'R') {
-            $(doc).find('Name').each(function(i, el) {
-                if (el.textContent == label.name) {
-                    $(el.parentNode.parentNode).remove()
-                }
-            })
+    if (label.isDLSLabel()) {
+        // Conversion of 1/10mm to twips = 1440/254
+        var dx = 1440 * calData.dx / 254
+        var dy = 1440 * calData.dy / 254;
+        $(doc).find('Bounds').each(function (i, el) {
+            var x = Number(el.getAttribute('X'))
+            var y = Number(el.getAttribute('Y'))
+            x = x + dx;
+            y = y + dy;
+            el.setAttribute('X', x.toString())
+            el.setAttribute('Y', y.toString())
+        })
+        // Remove label objects marked 'R'
+        for (var i = 0; i < labelData.length; i++) {
+            if (labelData[i].type == 'R') {
+                $(doc).find('Name').each(function(idx, el) {
+                    if (el.textContent == labelData[i].name) {
+                        $(el.parentNode.parentNode).remove()
+                    }
+                })
+            }
         }
     }
-    return (new XMLSerializer()).serializeToString(doc)
+    else {
+        // Conversion of 1/10mm to inches
+        var dx = calData.dx / 254
+        var dy = calData.dy / 254;
+        $(doc).find('ObjectLayout DYMOPoint X').each(function (i, el) {
+            var x = Number.parseFloat(el.textContent)
+            x = x + dx
+            el.textContent = x.toString()
+        })
+        $(doc).find('ObjectLayout DYMOPoint Y').each(function (i, el) {
+            var y = Number.parseFloat(el.textContent)
+            y = y + dy
+            el.textContent = y.toString()
+        })
+        // Remove label objects marked 'R'
+        for (var i = 0; i < labelData.length; i++) {
+            if (labelData[i].type == 'R') {
+                $(doc).find('Name').each(function(idx, el) {
+                    if (el.textContent == labelData[i].name) {
+                        $(el.parentNode).remove()
+                    }
+                })
+            }
+        }
+    }
+    var xml = (new XMLSerializer()).serializeToString(doc)
+    // Fix XML, otherwise the Webservice will throw
+    // Color, Columns, Rows must have open/close tags
+    if (label.isDCDLabel) {
+        var elements = [ 'Color', 'Columns', 'Rows' ]
+        elements.forEach(function(element) {
+            var regex = new RegExp('<' + element + '.*?\\s{0,1}\\/>', 'sgm')
+            var m
+            while ((m = regex.exec(xml)) !== null) {
+                if (m.index === regex.lastIndex) {
+                    regex.lastIndex++;
+                }
+                m.forEach(function(match, groupIndex) {
+                    var replace = match.substr(0, match.length - 2) + '></' + element + '>'
+                    xml = xml.replace(match, replace)
+                })
+            }
+        })
+    }
+    return xml
 }
 
 

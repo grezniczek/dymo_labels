@@ -88,7 +88,7 @@ class setupPluginPage {
 foreach($labels as $l) {
     print "<p><a href=\"{$fw->getUrl("public.php", true)}&template={$l["id"]}\">{$l["name"]}</a></p>";
 }
-print "<p><a href=\"{$fw->getUrl("public.php", true)}&template=fb4bd1aa-3038-4d8c-bb43-41c4bafbf82a&T_CODE=12345678&T_TEXT=Text&T_DATE=30.01.2021&DM_DMLABEL=12345678&R_DMCAP&T_CODECAP=1234\\n6789&T_PROJECT=BBMHH&range=COPY:1-3\">BBMHH Test Label</a></p>";
+print "<p><a href=\"{$fw->getUrl("public.php", true)}&template=98388cdd-0373-4c1a-963d-7a5b93b26d12&T_CODE=12345678&T_TEXT=Text&T_DATE=30.01.2021&DM_DMLABEL=12345678&R_DMCAP&T_CODECAP=1234\\n6789&T_PROJECT=BBMHH&range=COPY:1-3\">BBMHH Test Label</a></p>";
 
 ?>
 
