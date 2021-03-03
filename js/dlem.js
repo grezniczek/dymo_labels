@@ -574,7 +574,11 @@ EM.DYMOLabelPrint_init = function(data) {
                 $('[data-command=refresh]').on('click', setupPrinters)
                 $('[data-command=print]').on('click', printLabels)
                 $('[data-command=calibrate]').on('click', calibrate)
+                $('[data-command="print-single"]').on('click', function(e) {
+                    printSingleLabel(e.currentTarget.getAttribute('data-label'))
+                })
                 $('input[name=printer]').on('change', selectPrinter)
+
     
                 setUIState()
     
@@ -707,6 +711,10 @@ function setUIState() {
         config.labels[config.print.template] == undefined ||
         n == 0)
     $('[data-command=preview]').prop('disabled', 
+        selectedPrinter == null || 
+        config.print.labels.length == 0 || 
+        config.labels[config.print.template] == undefined)
+    $('[data-command="print-single"]').prop('disabled', 
         selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined)
@@ -945,7 +953,7 @@ function printLabels() {
     /** @type {DYMOLabelFramework_PrintParams} */
     var printParams = {
         copies: 1,
-        printQuality: DLF.LabelWriterPrintQuality.Text,
+        printQuality: DLF.LabelWriterPrintQuality.BarcodeAndGraphics,
         flowDirection: DLF.FlowDirection.LeftToRight
     }
     if (selectedPrinter.isTwinTurbo) {
@@ -973,11 +981,49 @@ function printLabels() {
                 $chk.prop('checked', false)
             }
             catch (err) {
-
+                logError(err)
             }
         }
     }
     printing = false
+    setUIState()
+}
+
+/**
+ * Prints a sinlge label (from the preview modal)
+ * @param {Number} labelNo 
+ */
+function printSingleLabel(labelNo) {
+    // Get calibration data
+    var calData = selectedPrinter.calData
+    /** @type {DYMOLabelFramework_PrintParams} */
+    var printParams = {
+        copies: 1,
+        printQuality: DLF.LabelWriterPrintQuality.BarcodeAndGraphics,
+        flowDirection: DLF.FlowDirection.LeftToRight
+    }
+    if (selectedPrinter.isTwinTurbo) {
+        var left = $('#printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
+        printParams.twinTurboRoll = left ? DLF.TwinTurboRoll.Left : DLF.TwinTurboRoll.Right
+    }
+    var labelData = config.print.labels[labelNo]
+    printParams.jobTitle = 'Label #' + (labelNo + 1)
+    try {
+        var labelXml = prepareLabelXml(labelData, calData)
+        var printParamsXml = DLF.createLabelWriterPrintParamsXml(printParams)
+        if (!config.print.skipPrinting) {
+            log('Printing \'' + printParams.jobTitle + '\':', labelData)
+            DLF.printLabel(selectedPrinter.name, printParamsXml, labelXml, null)
+        }
+        else {
+            log('Printing (simulated) \'' + printParams.jobTitle + '\':', labelData)
+        }
+    }
+    catch (err) {
+        logError(err)
+    }
+    // Uncheck in list
+    $('input[data-label-include="' + labelNo + '"]').prop('checked', false)
     setUIState()
 }
 
@@ -1004,6 +1050,7 @@ function previewLabel(labelNo) {
     })
     var png = DLF.renderLabel(labelXml, renderParamsXml, selectedPrinter.name)
     $('img.label-preview').attr('src', 'data:image/png;base64,' + png)
+    $('[data-command="print-single"]').attr('data-label', labelNo)
     $('#modal-preview').modal('show')
 }
 

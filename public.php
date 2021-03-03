@@ -86,12 +86,14 @@ class publicEndpoint
                         break;
                     default:
                         if (preg_match("/^(T|DM|QR|PNG|R)_([A-Z0-9_]+)/", trim($key), $match) === 1) {
+                            $pvalue = str_replace("\r", "", $value);
+                            $pvalue = str_replace("\\n", "\n", $pvalue);
                             $type = (strlen(trim($value)) == 0) ? "R" : $match[1];
                             $name = $match[2];
                             $kvPair = array(
                                 "name" => $name,
                                 "type" => $type,
-                                "value" => $value
+                                "value" => $pvalue,
                             );
                             array_push($kvPairs, $kvPair);
                         }
@@ -311,7 +313,8 @@ class publicEndpoint
                     <img class="label-preview" />
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><?= $fw->tt("dialog_close") ?></button>
+                    <button type="button" data-command="print-single" class="btn btn-secondary btn-sm"><?= $fw->tt("pp_printsingle") ?></button>
+                    <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal"><?= $fw->tt("dialog_close") ?></button>
                 </div>
             </div>
         </div>
