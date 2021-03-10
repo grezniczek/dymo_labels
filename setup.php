@@ -27,7 +27,7 @@ class setupPluginPage {
         $m->includeJS("js/3rd-party/datatables.min.js");
         $m->includeJS("js/3rd-party/autosize.min.js");
         $m->includeJS("js/3rd-party/bs-custom-file-input.min.js");
-        $m->includeJS("js/dlem.js");
+        $m->includeJS("js/dlem-config.js");
 
         // Ajax Setup.
         $crypto = Crypto::init($m);
