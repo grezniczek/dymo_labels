@@ -124,6 +124,7 @@ function generateInitialConfig() {
                 transform: isText ? 'T' : 'PNG',
                 type: isText ? 'Text' : 'Graphic',
                 readOnly: false,
+                multiline: false,
             }
         }
     })
@@ -239,8 +240,16 @@ function fileChanged() {
  */
 function configureLabel(label) {
     log('Configure label: ' + label.id)
-    dialog('#modal-error', {
-        error: 'Not implemented yet.'
+    dialog('#modal-config', {
+        name: label.name,
+        id: label.id,
+        desc: label.desc,
+    })
+    .then(function(verb) {
+        log('Config: ' + verb)
+    })
+    .catch(function(err) {
+        logError(err)
     })
 }
 

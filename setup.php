@@ -192,8 +192,8 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                 </button>
             </div>
             <div class="modal-body">
-                <p class="dlem-delete-name" data-modal-content="name"></p>
-                <p class="dlem-delete-id" data-modal-content="id"></p>
+                <p class="dlem-label-name" data-modal-content="name"></p>
+                <p class="dlem-label-id" data-modal-content="id"></p>
                 <p><?=$fw->tt("setup_confirmdeletetext")?></p>
             </div>
             <div class="modal-footer">
@@ -242,6 +242,56 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
         </div>
     </div>
 </div>
+
+
+<!-- Modal: Config -->
+<div
+    class="modal fade"
+    id="modal-config"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-config-title"
+    aria-hidden="true"
+    data-backdrop="static"
+    data-keyboard="false"
+>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title dlem-config-title" id="modal-config-title">
+                    <b><?= $fw->tt("setup_config_title")?></b>
+                    <p>
+                        <span class="dlem-label-name" data-modal-content="name"></span><br>
+                        <span class="dlem-label-desc" data-modal-content="desc"></span>
+                    </p>
+                </h5>
+                <button type="button" class="close" data-modal-action="dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                
+            </div>
+            <div class="modal-body">
+
+
+                <p>TODO</p>
+
+            </div>
+            <div class="modal-footer">
+                <div class="dlem-label-id align-left" data-modal-content="id"></div>
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-modal-action="dismiss"><?=$fw->tt("setup_dismiss")?></button>
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    data-modal-action="save"><?=$fw->tt("setup_save")?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Modal: Info -->
 <div

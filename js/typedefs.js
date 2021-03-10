@@ -104,6 +104,7 @@
  *  transform: 'T' | 'PNG' | 'QR' | 'DM' | 'R'
  *  default: string
  *  readOnly: boolean
+ *  multiline: boolean
  * }}
  */
 
