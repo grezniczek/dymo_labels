@@ -24,6 +24,8 @@
  * @type {{
  *  chooseFile: string
  *  nameRequired: string
+ *  actionInfo: string
+ *  actionRename: string
  *  actionConfigure: string
  *  actionDownload: string
  *  actionPrint: string
@@ -31,6 +33,10 @@
  *  noPrinters: string
  *  noLabels: string
  *  removed: string
+ *  toastLabelAdded: string
+ *  toastLabelRenamed: string
+ *  toastLabelUpdated: string
+ *  toastLabelDeleted: string
  * }}
  */
 
@@ -100,6 +106,8 @@
 /**
  * @typedef LabelObjectInfo
  * @type {{
+ *  name: string
+ *  desc: string
  *  type: 'Text' | 'Graphic' 
  *  transform: 'T' | 'PNG' | 'QR' | 'DM' | 'R'
  *  default: string
@@ -121,7 +129,7 @@
  * @typedef AddLabelResponse
  * @type {{
  *  success: boolean
- *  id: string
+ *  label: LabelData
  * }}
  */
 
@@ -232,6 +240,14 @@
  *  printerUri: string
  *  calData: DYMOLabelCalibration
  *  listIndex: string
+ * }}
+ */
+
+/**
+ * @typedef DialogHelper
+ * @type {{
+ *  modal: JQuery<HTMLElement>
+ *  enable: function(boolean?,boolean?):void
  * }}
  */
 

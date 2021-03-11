@@ -44,17 +44,24 @@ var printing = false
  * Adds a new label.
  */
 function addNewLabel() {
-    dialog('#modal-addNew', null, function($modal, verb) {
+    clearAddState()
+    dialog('#modal-addNew', function(modal) {
+        checkAddState()
+    }, function(addDH, verb) {
         return new Promise(function(resolve, reject) {
             checkAddState()
             if (verb == 'add' && addState.valid) {
+                addDH.enable(false, true)
                 addState.config = generateInitialConfig()
                 submitData('add-label', addState)
                 .then(function(response) {
                     resolve(response)
                 })
                 .catch(function(err) {
-                    reject(err)
+                    addDH.enable(true, true)
+                    dialog('#modal-error', {
+                        error: err
+                    })
                 })
             }
             else {
@@ -69,9 +76,7 @@ function addNewLabel() {
         clearAddState()
     })
     .catch(function(err) {
-        dialog('#modal-error', {
-            error: err
-        })
+        logError(err)
     })
 }
 
@@ -81,18 +86,11 @@ function addNewLabel() {
  */
 function addLabelData(response) {
     // Add label
-    /** @type LabelData */
-    var label = {
-        id: response.id,
-        name: addState.name,
-        desc: addState.desc,
-        filename: addState.filename,
-        xml: addState.xml,
-        config: addState.config
-    }
+    var label = response.label
     config.labels[label.id] = label
     labelsTable.rows.add([label])
     labelsTable.draw()
+    successToast(config.strings.toastLabelAdded)
 }
 
 function clearAddState() {
@@ -108,6 +106,7 @@ function clearAddState() {
 }
 
 /**
+ * Sets the initial configuration with default values
  * @returns {LabelConfig}
  */
 function generateInitialConfig() {
@@ -120,6 +119,8 @@ function generateInitialConfig() {
         if (list.includes(name)) {
             var isText = this.parentNode.nodeName == 'TextObject'
             objects[name] = {
+                name: name,
+                desc: '',
                 default: label.getObjectText(name),
                 transform: isText ? 'T' : 'PNG',
                 type: isText ? 'Text' : 'Graphic',
@@ -169,6 +170,7 @@ function checkAddState() {
     if (addState.xml.length > 0) {
         $('#dlem-labelfile-valid').show()
     }
+    $('[data-dlem-action="add-label"]').prop('disabled', !addState.valid)
 }
 
 /**
@@ -231,6 +233,89 @@ function fileChanged() {
 
 //#endregion
 
+//#region Show label info
+
+/**
+ * Show label info.
+ * @param {LabelData} label 
+ */
+function showInfo(label) {
+    dialog('#modal-error', { 
+        error: 'Not implemented yet.' 
+    })
+}
+//#endregion
+
+//#region Rename a label
+
+/**
+ * Rename a label.
+ * @param {LabelData} label 
+ */
+function renameLabel(label) {
+    dialog('#modal-renamelabel', function(modal) {
+        // Setup
+        /** @type {JQuery} */
+        var $modal = modal
+        $modal.find('[data-modal-content="id"]').text(label.id)
+        $modal.find('[data-input-control="name"]').val(label.name).removeClass('is-invalid').attr('title', '')
+        $modal.find('[data-input-control="desc"]').val(label.desc)
+    }, function(renameDH, verb) {
+        var $modal = renameDH.modal
+        return new Promise(function(resolve, reject) {
+            if (verb == 'save') {
+                // Gather data
+                var newName = $modal.find('[data-input-control="name"]').val().toString().trim()
+                var newDesc = $modal.find('[data-input-control="desc"]').val().toString().trim()
+                // Check
+                if (newName == '') {
+                    $modal.find('[data-input-control="name"]').addClass('is-invalid').attr('title', config.strings.nameRequired)
+                    $modal.find('[data-modal-action]').prop('disabled', false)
+                }
+                // Store
+                else {
+                    var payload = {
+                        id: label.id,
+                        name: newName,
+                        desc: newDesc,
+                    }
+                    submitData('rename-label', payload)
+                    .then(function(response) {
+                        var updatedLabel = response.label
+                        config.labels[label.id] = updatedLabel
+                        resolve(verb)
+                    })
+                    .catch(function(err) {
+                        renameDH.enable(true, true)
+                        // Show an error notification
+                        $modal.fadeTo(200, 0.8)
+                        dialog('#modal-error', {
+                            error: err
+                        })
+                        .then(function() {
+                            $modal.find('[data-modal-action]').prop('disabled', false)
+                            $modal.fadeTo(50, 1)
+                        })
+                    })
+                }
+            }
+            else {
+                resolve(verb)
+            }
+        })
+    }).then(function(verb) {
+        if (verb == 'save') {
+            labelsTable.clear()
+            labelsTable.rows.add(getTableData())
+            labelsTable.draw()
+            successToast(config.strings.toastLabelRenamed)
+        }
+    }).catch(function(err) {
+        logError(err)
+    })
+}
+//#endregion
+
 
 //#region Configure a label
 
@@ -240,13 +325,155 @@ function fileChanged() {
  */
 function configureLabel(label) {
     log('Configure label: ' + label.id)
-    dialog('#modal-config', {
-        name: label.name,
-        id: label.id,
-        desc: label.desc,
+    dialog('#modal-config', function(modal) {
+        log('Configuring:', label)
+        /** @type {JQuery} */
+        var $modal = modal
+        // Clear
+        $modal.find('[data-object-name]').remove()
+        $modal.find('hr').remove()
+        // Add static
+        $modal.find('[data-modal-content=id]').html(label.id)
+        $modal.find('[data-modal-content=name]').html(label.name)
+        $modal.find('[data-modal-content=desc]').html(label.desc)
+        // Add dynamic
+        $modal.find('[data-modal-content=public]').prop('checked', label.config.public)
+        var counter = 0
+        Object.keys(label.config.objects).forEach(function(key) {
+            var loi = label.config.objects[key]
+            var $row = $modal.find(loi.type == 'Text' ? 'div[data-template=text-object]' : 'div[data-template=image-object]').clone(false)
+            $row.removeClass('d-none').removeAttr('data-template')
+            if (counter > 0) {
+                $modal.find('.modal-body').append('<hr>')
+            }
+            $modal.find('.modal-body').append($row)
+            $row.attr('data-object-name', loi.name)
+            $row.find('[data-content="name"]').text(loi.name).attr('title', loi.desc).tooltip()
+            $row.find('[data-content="readonly"]').prop('checked', loi.readOnly).attr('id', 'readonly-' + counter).siblings('label').attr('for', 'readonly-' + counter)
+            $row.find('[data-content="transform"]').val(loi.transform)
+            $row.find('[data-content="default"]').val(loi.default).attr('id', 'textarea-' + counter)
+            $row.find('[data-content="multiline"]').prop('checked', loi.multiline).attr('id', 'multiline-' + counter).on('change', function() {
+                var ml = $(this).prop('checked')
+                $(this).parents('div[data-object-name]').find('textarea').prop('rows', ml ? 3 : 1)
+            }).siblings('label').attr('for', 'multiline-' + counter)
+            $row.find('[data-edit-action]').on('click', function(e) {
+                $modal.fadeTo(200, 0.8)
+                dialog('#modal-editlabelobject', function(edit) {
+                    /** @type {JQuery} */
+                    var $edit = $(edit)
+                    $edit.find('[data-modal-content=objectname]').text(loi.name)
+                    $edit.find('[data-input-control=objectname]').val(loi.name)
+                    $edit.find('[data-input-control=objectdesc]').val(loi.desc)
+                    $edit.find('[data-input-control=objectname]').removeClass('is-invalid')
+                }, function(editDH, editVerb) {
+                    var $edit = editDH.modal
+                    return new Promise(function(resolve, reject) {
+                        if (editVerb == 'edit-labelobject') {
+                            var newName = $edit.find('[data-input-control=objectname]').val().toString().trim()
+
+                            if (/^([A-Za-z0-9]{1,})$/.test(newName)) {
+                                loi.name = newName
+                                loi.desc = $edit.find('[data-input-control=objectdesc]').val().toString().trim()
+                                resolve(editVerb)
+                            }
+                            else {
+                                $edit.find('[data-input-control=objectname]').addClass('is-invalid').attr('title', 'The name must not be empty and consist of letters and numbers only!')
+                                $edit.find('[data-modal-action]').prop('disabled', false)
+                            }
+                        }
+                        else if (editVerb == 'cancel') {
+                            resolve()
+                        }
+                    })
+                })
+                .then(function(editVerb) {
+                    if (editVerb == 'edit-labelobject') {
+                        // Store
+                        $row.find('[data-content="name"]').text(loi.name).attr('title', loi.desc).tooltip()
+                    }
+                    $modal.fadeTo(50, 1)
+                })
+            })
+            counter++
+        })
+        // Remove 'no labels'
+        if (Object.keys(label.config.objects).length) {
+            $modal.find('.dlem-no-labelobjects').hide()
+        }
+        else {
+            $modal.find('.dlem-no-labelobjects').show()
+        }
+    }, function(configDH, verb) {
+        var $modal = configDH.modal
+        return new Promise(function(resolve, reject) {
+            if (verb == 'save') {
+                // Save configuration - read from modal and replace old config
+                /** @type {LabelConfig} */
+                var updatedConfig = {}
+                var updatedXml = label.xml
+                updatedConfig.public = $modal.find('[data-modal-content=public]').prop('checked')
+                updatedConfig.objects = {}
+                $modal.find('[data-object-name]').each(function() {
+                    var $obj = $(this)
+                    var oldName = $obj.attr('data-object-name')
+                    /** @type {LabelObjectInfo} */
+                    var loi = {
+                        name: $obj.find('[data-content="name"]').text().trim(),
+                        desc: $obj.find('[data-content="name"]').attr('title').trim(),
+                        default: $obj.find('[data-content="default"]').val().toString(),
+                        multiline: $obj.find('[data-content="multiline"]').prop('checked'),
+                        readOnly: $obj.find('[data-content="readonly"]').prop('checked'),
+                        // @ts-ignore
+                        transform: $obj.find('[data-content="transform"]').val().toString(),
+                        // @ts-ignore
+                        type: label.config.objects[oldName].type,
+                    }
+                    updatedConfig.objects[loi.name] = loi
+                    if (loi.name != oldName) {
+                        // Need to update label XML
+                        var search = '<Name>' + oldName + '</Name>'
+                        var replace = '<Name>' + loi.name + '</Name>'
+                        updatedXml = updatedXml.replace(search, replace)
+                    }
+                })
+                /** @type {LabelData} */
+                var updatedLabel = {
+                    id: label.id,
+                    name: label.name,
+                    desc: label.desc,
+                    filename: label.filename,
+                    config: updatedConfig,
+                    xml: updatedXml,
+                }
+                submitData('update-label', updatedLabel)
+                .then(function(response) {
+                    updatedLabel = response.label
+                    config.labels[label.id] = updatedLabel
+                    log('Label updated:', updatedLabel)
+                    resolve(verb)
+                })
+                .catch(function(err) {
+                    // Show an error notification
+                    $modal.fadeTo(200, 0.8)
+                    configDH.enable(true, true)
+                    dialog('#modal-error', {
+                        error: err
+                    })
+                    .then(function() {
+                        $modal.find('[data-modal-action]').prop('disabled', false)
+                        $modal.fadeTo(50, 1)
+                    })
+                })
+            }
+            else {
+                resolve(verb)
+            }
+        })
     })
     .then(function(verb) {
-        log('Config: ' + verb)
+        if (verb == 'save') {
+            successToast(config.strings.toastLabelUpdated)
+        }
     })
     .catch(function(err) {
         logError(err)
@@ -315,6 +542,7 @@ function deleteLabel(label) {
             labelsTable.clear()
             labelsTable.rows.add(getTableData())
             labelsTable.draw()
+            successToast(config.strings.toastLabelDeleted)
         }
     })
     .catch(function(err) {
@@ -344,6 +572,13 @@ function printLabel(label) {
 
 
 //#region UI & Ajax Helper
+
+
+function successToast(msg) {
+    var $toast = $('#dlem-successToast')
+    $toast.find('[data-content=toast]').html(msg)
+    $toast.toast('show')
+}
 
 /**
  * Logs an error to the console
@@ -392,37 +627,35 @@ function log() {
 /**
  * 
  * @param {string} selector 
- * @param {object} content 
- * @param {function(JQuery, string):Promise} action 
+ * @param {object | function(JQuery):void } contentOrSetup 
+ * @param {function(DialogHelper, string):Promise} action 
  */
-function dialog(selector, content, action = null) {
+function dialog(selector, contentOrSetup = null, action = null) {
     return new Promise(function(resolve, reject) {
         // Prepare dialog
         var $modal = $(selector)
-        $modal.find('[data-modal-content]').each(function(index, element) {
-            var item = element.getAttribute('data-modal-content')
-            element.innerHTML = content[item]
-        })
-        var enable = function(enabled = true) {
+        var enable = function(enabled = true, swap = false) {
             // Enable or disable all action buttons
             // and show/hide busy content
             $modal.find('[data-modal-action]').each(function() {
                 var $btn = $(this)
                 $btn.prop('disabled', !enabled)
-                if (enabled) {
-                    $btn.find('.when-disabled').hide()
-                    $btn.find('.when-enabled').show()
-                }
-                else {
-                    $btn.find('.when-disabled').show()
-                    $btn.find('.when-enabled').hide()
+                if (swap) {
+                    if (enabled) {
+                        $btn.find('.when-disabled').hide()
+                        $btn.find('.when-enabled').show()
+                    }
+                    else {
+                        $btn.find('.when-disabled').show()
+                        $btn.find('.when-enabled').hide()
+                    }
                 }
             })
         }
         var hide = function() {
             $modal.modal('hide')
             $modal.off('click', clickHandler)
-            enable()
+            enable(true, true)
         }
         var done = function(result) {
             hide()
@@ -441,9 +674,9 @@ function dialog(selector, content, action = null) {
                 try {
                     if (action) {
                         // Disable all buttons and set spinner
-                        enable(false)
+                        enable(false, true)
                         // Perform action
-                        action($modal, verb)
+                        action({ modal: $modal, enable: enable }, verb)
                         .then(function(result) {
                             done(result)
                         })
@@ -460,8 +693,17 @@ function dialog(selector, content, action = null) {
                 } 
             }
         }
-        enable()
+        enable(true, true)
         $modal.on('click', clickHandler)
+        if (typeof contentOrSetup == 'function') {
+            contentOrSetup($modal)
+        }
+        else if (typeof contentOrSetup == 'object') {
+            $modal.find('[data-modal-content]').each(function(index, element) {
+                var item = element.getAttribute('data-modal-content')
+                element.innerHTML = contentOrSetup[item]
+            })
+        }
         $modal.modal('show')
     })
 }
@@ -614,6 +856,8 @@ EM.DYMOLabelPrint_init = function(data) {
  */
 function renderLabelActions(id) {
     var buttons = 
+        '<button class="btn btn-xs btn-info" data-dlem-action="info"><i class="fas fa-info"></i> ' + config.strings.actionInfo + '</button> ' +
+        '<button class="btn btn-xs btn-primary" data-dlem-action="rename"><i class="fas fa-i-cursor"></i> ' + config.strings.actionRename + '</button> ' +
         '<button class="btn btn-xs btn-primary" data-dlem-action="configure"><i class="fas fa-wrench"></i> ' + config.strings.actionConfigure + '</button> ' +
         '<button class="btn btn-xs btn-secondary" data-dlem-action="print"><i class="fas fa-print"></i> ' + config.strings.actionPrint + '</button> '
     if (config.canDownload) {
@@ -627,6 +871,7 @@ function renderLabelActions(id) {
 
 //#endregion
 
+
 //#region Setup Helpers
 
 /**
@@ -636,7 +881,13 @@ function renderLabelActions(id) {
  */
 function handleLabelActions(action, id) {
     switch(action) {
-        case "configure":
+        case 'info':
+            showInfo(config.labels[id])
+            break
+        case 'rename':
+            renameLabel(config.labels[id])
+            break
+        case 'configure':
             configureLabel(config.labels[id])
             break
         case 'download':
@@ -672,6 +923,7 @@ function getTableData() {
 }
 
 //#endregion
+
 
 //#region Print Preview & Print
 

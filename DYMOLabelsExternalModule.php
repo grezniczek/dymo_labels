@@ -4,6 +4,8 @@ use DE\RUB\REDCapEMLib\Crypto;
 use DE\RUB\REDCapEMLib\Project;
 use Exception;
 use ExternalModules\AbstractExternalModule;
+use SimpleXMLElement;
+use Throwable;
 
 /**
  * Provides an integration of DYMO LabelWriter printers with REDCap.
@@ -113,18 +115,106 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
     function addLabel($data) {
         if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $guid = Crypto::getGuid();
+        
         $label = array(
             "id" => $guid,
-            "name" => $data["name"],
-            "desc" => $data["desc"],
-            "xml" => $data["xml"],
-            "filename" => $data["filename"],
-            "config" => $data["config"],
+            "name" => htmlentities($data["name"]),
+            "desc" => htmlentities($data["desc"]),
+            "xml" => $this->validateXml($data["xml"]),
+            "filename" => htmlentities($data["filename"]),
+            "config" => $this->sanitizeLabelConfig($data["config"]),
         );
         $key = "label-{$guid}";
         $this->setProjectSetting($key, $label);
-        return $guid;
+        return $label;
     }
+
+    /**
+     * Checks whether the given XML is valid
+     * @param string $xml 
+     * @return string The xml string
+     * @throws Exception In case the XML cannot be parsed without errors.
+     */
+    function validateXml($xml) {
+        $prev = libxml_use_internal_errors(true);
+        $errors = 1;
+        try {
+            new SimpleXMLElement($xml, 0, false);
+            $errors = count(libxml_get_errors());
+        }
+        catch (Throwable $err) {
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if ($errors > 0) {
+            throw new Exception($this->tt("error_invalidxml"));
+        }
+        return $xml;
+    }
+
+    /**
+     * Renames an existing label.
+     * @param string $data The label data (associative array: id, name, desc).
+     * @return string A GUID under which the label is saved.
+     */
+    function renameLabel($data) {
+        $key = "label-{$data["id"]}";
+        $label = $this->getProjectSetting($key);
+
+        if ($label == null) {
+            throw new Exception($this->tt("error_labelnotfound"));
+        }
+        $label["name"] = htmlentities($data["name"]);
+        $label["desc"] = htmlentities($data["desc"]);
+        $this->setProjectSetting($key, $label);
+        return $label;
+    }
+
+    /**
+     * Updates an existing label.
+     * @param string $data The label data (associative array: name, desc, filename, xml).
+     * @return string A GUID under which the label is saved.
+     */
+    function updateLabel($data) {
+        $key = "label-{$data["id"]}";
+        $label = $this->getProjectSetting($key);
+
+        if ($label == null) {
+            throw new Exception($this->tt("error_labelnotfound"));
+        }
+        $label["name"] = htmlentities($data["name"]);
+        $label["desc"] = htmlentities($data["desc"]);
+        $label["xml"] = $data["xml"];
+        $label["config"] = $this->sanitizeLabelConfig($data["config"]);
+        $this->setProjectSetting($key, $label);
+        return $label;
+    }
+
+    function sanitizeLabelConfig($incoming) {
+        $config = array (
+            "public" => $incoming["public"] === "true",
+        );
+        foreach ($incoming["objects"] as $name => $loi) {
+            $type = $loi["type"] == "Graphic" ? "Graphic" : "Text";
+            $transform = "R";
+            if (($type == "Graphic" && in_array($loi["transform"], ["PNG", "DM", "QR", "R"], true)) ||
+                ($type == "Text" && in_array($loi["transform"], ["T", "R"], true))) {
+                $transform = $loi["transform"];
+            }
+            $object = array (
+                "name" => htmlentities($loi["name"]),
+                "desc" => htmlentities($loi["desc"]),
+                "type" => $type, 
+                "transform" => $transform,
+                "multiline" => $loi["multiline"] === true,
+                "readOnly" => $loi["readOnly"] === true,
+                "default" => htmlentities($loi["default"]),
+            );
+            $config["objects"][$object["name"]] = $object;
+        }
+        return $config;
+    }
+
 
     /**
      * Deletes a label.

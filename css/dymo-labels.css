@@ -59,3 +59,8 @@ table.dataTable thead .sorting_asc{background-image:none !important;}
 table.dataTable thead .sorting_desc{background-image:none !important;}
 table.dataTable thead .sorting_asc_disabled{background-image:none !important;}
 table.dataTable thead .sorting_desc_disabled{background-image:none !important;}
+
+/* Switch */
+.custom-switch label {
+    line-height: 1.5rem;
+}

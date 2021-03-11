@@ -1,6 +1,8 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
 use DE\RUB\REDCapEMLib\Crypto;
+use Exception;
+use Throwable;
 
 /**
  * This is the AJAX endpoint for all authenticated module operations
@@ -36,12 +38,44 @@ class ajaxEndpoint {
         if ($verified) {
             switch ($data["action"]) {
                 case "add-label":
-                    $payload = json_decode($data["payload"], true);
-                    $id = $m->addLabel($payload);
-                    $response = array (
-                        "success" => true,
-                        "id" => $id,
-                    );
+                    try {
+                        $payload = json_decode($data["payload"], true);
+                        throw new Exception("temp");
+                        $label = $m->addLabel($payload);
+                        $response = array (
+                            "success" => true,
+                            "label" => $label,
+                        );
+                    }
+                    catch (Throwable $ex) {
+                        $response["error"] = $ex->getMessage();
+                    }
+                break;
+                case "rename-label":
+                    try {
+                        $payload = json_decode($data["payload"], true);
+                        $label = $m->renameLabel($payload);
+                        $response = array (
+                            "success" => true,
+                            "label" => $label,
+                        );
+                    }
+                    catch (Throwable $ex) {
+                        $response["error"] = $ex->getMessage();
+                    }
+                break;
+                case "update-label":
+                    try {
+                        $payload = json_decode($data["payload"], true);
+                        $label = $m->updateLAbel($payload);
+                        $response = array (
+                            "success" => true,
+                            "label" => $label,
+                        );
+                    }
+                    catch (Throwable $ex) {
+                        $response["error"] = $ex->getMessage();
+                    }
                 break;
                 case "get-labels":
                     $labels = $m->getLabels();
