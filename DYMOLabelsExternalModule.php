@@ -192,7 +192,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
     function sanitizeLabelConfig($incoming) {
         $config = array (
-            "public" => $incoming["public"] === "true",
+            "public" => $incoming["public"] === true,
         );
         foreach ($incoming["objects"] as $name => $loi) {
             $type = $loi["type"] == "Graphic" ? "Graphic" : "Text";

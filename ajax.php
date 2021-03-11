@@ -40,7 +40,6 @@ class ajaxEndpoint {
                 case "add-label":
                     try {
                         $payload = json_decode($data["payload"], true);
-                        throw new Exception("temp");
                         $label = $m->addLabel($payload);
                         $response = array (
                             "success" => true,

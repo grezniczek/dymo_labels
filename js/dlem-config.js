@@ -333,11 +333,11 @@ function configureLabel(label) {
         $modal.find('[data-object-name]').remove()
         $modal.find('hr').remove()
         // Add static
-        $modal.find('[data-modal-content=id]').html(label.id)
-        $modal.find('[data-modal-content=name]').html(label.name)
-        $modal.find('[data-modal-content=desc]').html(label.desc)
+        $modal.find('[data-modal-content="id"]').html(label.id)
+        $modal.find('[data-modal-content="name"]').html(label.name)
+        $modal.find('[data-modal-content="desc"]').html(label.desc)
         // Add dynamic
-        $modal.find('[data-modal-content=public]').prop('checked', label.config.public)
+        $modal.find('[data-modal-content="public"]').prop('checked', label.config.public)
         var counter = 0
         Object.keys(label.config.objects).forEach(function(key) {
             var loi = label.config.objects[key]
@@ -354,8 +354,9 @@ function configureLabel(label) {
             $row.find('[data-content="default"]').val(loi.default).attr('id', 'textarea-' + counter)
             $row.find('[data-content="multiline"]').prop('checked', loi.multiline).attr('id', 'multiline-' + counter).on('change', function() {
                 var ml = $(this).prop('checked')
-                $(this).parents('div[data-object-name]').find('textarea').prop('rows', ml ? 3 : 1)
+                $row.find('textarea').prop('rows', ml ? 3 : 1)
             }).siblings('label').attr('for', 'multiline-' + counter)
+            $row.find('textarea').prop('rows', loi.multiline ? 3 : 1)
             $row.find('[data-edit-action]').on('click', function(e) {
                 $modal.fadeTo(200, 0.8)
                 dialog('#modal-editlabelobject', function(edit) {
@@ -411,7 +412,7 @@ function configureLabel(label) {
                 /** @type {LabelConfig} */
                 var updatedConfig = {}
                 var updatedXml = label.xml
-                updatedConfig.public = $modal.find('[data-modal-content=public]').prop('checked')
+                updatedConfig.public = $modal.find('[data-modal-content="public"]').prop('checked')
                 updatedConfig.objects = {}
                 $modal.find('[data-object-name]').each(function() {
                     var $obj = $(this)

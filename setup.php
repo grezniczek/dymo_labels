@@ -304,9 +304,8 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                             <label class="custom-control-label" for=""><?= $fw->tt("setup_config_readonly") ?></label>
                         </div>
                     </div>
-                    <div class="form-inline mt-1" style="display:flex;">
-                        <label for=""><?= $fw->tt("setup_config_defaultvalue") ?></label>
-                        <textarea data-content="default" rows="2" class="form-control form-control-sm ml-2" style="flex:1;">This is a default value</textarea>
+                    <div class="form-group mt-2">
+                        <textarea placeholder="<?= $fw->tt("setup_config_defaultvalue") ?>" title="<?= $fw->tt("setup_config_defaultvalue") ?>" data-toggle="tooltip" data-placement="top" data-content="default" rows="2" class="form-control form-control-sm">This is a default value</textarea>
                     </div>
                 </div>
                 <div class="mb-3 d-none" data-template="text-object" data-object-type="Text">
@@ -333,9 +332,8 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                             <label class="custom-control-label" for=""><?= $fw->tt("setup_config_multiline") ?></label>
                         </div>
                     </div>
-                    <div class="form-inline mt-1" style="display:flex;">
-                        <label for=""><?= $fw->tt("setup_config_defaultvalue") ?></label>
-                        <textarea data-content="default" rows="1" class="form-control form-control-sm ml-2" style="flex:1;">This is a default value</textarea>
+                    <div class="form-group mt-2">
+                        <textarea placeholder="<?= $fw->tt("setup_config_defaultvalue") ?>" title="<?= $fw->tt("setup_config_defaultvalue") ?>" data-toggle="tooltip" data-placement="top" data-content="default" rows="1" class="form-control form-control-sm">This is a default value</textarea>
                     </div>
                 </div>
             </div>
