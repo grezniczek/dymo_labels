@@ -240,8 +240,8 @@ function fileChanged() {
  * @param {LabelData} label 
  */
 function showInfo(label) {
-    dialog('#modal-error', { 
-        error: 'Not implemented yet.' 
+    dialog('#modal-info', { 
+        id: label.id,
     })
 }
 //#endregion
@@ -333,9 +333,9 @@ function configureLabel(label) {
         $modal.find('[data-object-name]').remove()
         $modal.find('hr').remove()
         // Add static
-        $modal.find('[data-modal-content="id"]').html(label.id)
-        $modal.find('[data-modal-content="name"]').html(label.name)
-        $modal.find('[data-modal-content="desc"]').html(label.desc)
+        $modal.find('[data-modal-content="id"]').text(label.id)
+        $modal.find('[data-modal-content="name"]').text(label.name)
+        $modal.find('[data-modal-content="desc"]').text(label.desc)
         // Add dynamic
         $modal.find('[data-modal-content="public"]').prop('checked', label.config.public)
         var counter = 0
@@ -771,10 +771,12 @@ EM.DYMOLabelConfig_init = function(data) {
     labelsTable = $('#dlem-labels').DataTable({
         columns: [
             {
-                data: 'name'
+                data: 'name',
+                render: $.fn.dataTable.render.text()
             },
             {
-                data: 'desc'
+                data: 'desc',
+                render: $.fn.dataTable.render.text()
             },
             {
                 data: 'id',

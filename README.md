@@ -1,6 +1,6 @@
 # DYMO Labels
 
-An external module integrating DYMO label printers with REDCap.
+An external module that provides action tags and plugin pages to enable printing of labels using DYMO LabelWriter printers.
 
 ## Requirements
 
@@ -27,11 +27,24 @@ Congifure =
 - default number of copies
 - widget style (text, image, both)
 
-## Action Tags
+## Action Tag: @DYMO-LABEL
 
-@DYMO-LABEL="id"
-Adds a widget to the label portion that, when clicked, initiates printing of a label (shows a preview).
+Usage:
 
-## Effect
+```JS
+@DYMO-LABEL={
+    'id': 'xxxx-xxxx-xxxx',
+    'target': 'css-selector', // optional; default = appended to the label portion of the current field
+    'data': {
+        'LABELOBJECT1': 'Name: [firstname] [lastname]',
+        'LABELOBJECT2': '[dob]',
+        ...
+    }
+}
+```
 
-Provides action tags and plugin pages to facilitate printing of labels using DYMO LabelWriter printers.
+- `id`: The label ID as displayed in the label info or other various dialogs.
+- `target`: A CSS selector. The print widget will be displayed in the first matching element. This is optional. When not specified, the widget is added to the label portion of the field with the action tag.
+- `data`: The data used to fill the label objects, given as key-value pairs. Keys are the names of the label object as shown/defined in the label configuration. Values are strings; piping is supported. Values will be transformed as configured for the label.
+
+The action tag parameter must be valid JSON. The plugin page provides templates for labels that can be copy/pasted.

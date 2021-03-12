@@ -35,6 +35,12 @@
         "public",
         "public-ajax"
     ],
+    "action-tags": [
+        {
+            "key": "dymo-label",
+            "name": "@DYMO-LABEL"
+        }
+    ],
     "system-settings": [
         {
             "key": "system-allow-public",

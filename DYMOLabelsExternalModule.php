@@ -118,10 +118,10 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         
         $label = array(
             "id" => $guid,
-            "name" => htmlentities($data["name"]),
-            "desc" => htmlentities($data["desc"]),
+            "name" => $data["name"],
+            "desc" => $data["desc"],
             "xml" => $this->validateXml($data["xml"]),
-            "filename" => htmlentities($data["filename"]),
+            "filename" => data["filename"],
             "config" => $this->sanitizeLabelConfig($data["config"]),
         );
         $key = "label-{$guid}";
@@ -164,8 +164,8 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         if ($label == null) {
             throw new Exception($this->tt("error_labelnotfound"));
         }
-        $label["name"] = htmlentities($data["name"]);
-        $label["desc"] = htmlentities($data["desc"]);
+        $label["name"] = $data["name"];
+        $label["desc"] = $data["desc"];
         $this->setProjectSetting($key, $label);
         return $label;
     }
@@ -182,8 +182,8 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         if ($label == null) {
             throw new Exception($this->tt("error_labelnotfound"));
         }
-        $label["name"] = htmlentities($data["name"]);
-        $label["desc"] = htmlentities($data["desc"]);
+        $label["name"] = $data["name"];
+        $label["desc"] = $data["desc"];
         $label["xml"] = $data["xml"];
         $label["config"] = $this->sanitizeLabelConfig($data["config"]);
         $this->setProjectSetting($key, $label);
@@ -202,13 +202,13 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                 $transform = $loi["transform"];
             }
             $object = array (
-                "name" => htmlentities($loi["name"]),
-                "desc" => htmlentities($loi["desc"]),
+                "name" => $loi["name"],
+                "desc" => $loi["desc"],
                 "type" => $type, 
                 "transform" => $transform,
                 "multiline" => $loi["multiline"] === true,
                 "readOnly" => $loi["readOnly"] === true,
-                "default" => htmlentities($loi["default"]),
+                "default" => $loi["default"],
             );
             $config["objects"][$object["name"]] = $object;
         }

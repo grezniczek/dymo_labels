@@ -486,6 +486,7 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
 
             </div>
             <div class="modal-footer">
+                <div class="dlem-label-id align-left" data-modal-content="id"></div>
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
