@@ -37,6 +37,7 @@
  *  toastLabelRenamed: string
  *  toastLabelUpdated: string
  *  toastLabelDeleted: string
+ *  actionTagReplace: string
  * }}
  */
 

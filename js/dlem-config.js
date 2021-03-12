@@ -241,10 +241,55 @@ function fileChanged() {
  * @param {LabelData} label 
  */
 function showInfo(label) {
+    var tagInfo = '@DYMO-LABEL={'
+    tagInfo += '\n  \'id\': \'' + label.id + '\','
+    tagInfo += '\n  \'target\': \'\','
+    tagInfo += '\n  \'data\': {'
+    Object.keys(label.config.objects).forEach(function(key) {
+        var loi = label.config.objects[key]
+        if (loi.transform != 'R') {
+            tagInfo += '\n    \'' + loi.name + '\': \'' + config.strings.actionTagReplace + '\','
+        }
+    })
+    if (tagInfo[tagInfo.length - 1] == ',') {
+        tagInfo = tagInfo.substring(0, tagInfo.length - 1)
+    }
+    tagInfo += '\n  }'
+    tagInfo += '\n}'
     dialog('#modal-info', { 
         id: label.id,
         name: label.name,
-        desc: label.desc
+        desc: label.desc,
+        tag: tagInfo,
+    }, function(infoDH, verb) {
+        return new Promise(function (resolve, reject) {
+            if (verb == 'copy') {
+                // Copy textarea to clipboard
+                try {
+                    /** @type {HTMLInputElement} */ // @ts-ignore
+                    var textarea = infoDH.modal.find('textarea[data-modal-content="tag"]')[0]
+                    textarea.focus()
+                    textarea.select()
+                    textarea.setSelectionRange(0,9999999)
+                    if (document.execCommand('copy')) {
+                        successToast('Action tag template copied to the clipboard.')
+                    }
+                    else {
+                        throw new Error()
+                    }
+                    textarea.setSelectionRange(0,0)
+                }
+                catch {
+                    dialog('#modal-error', {
+                        error: 'Clipboard is not accessible. Please copy manually.'
+                    })
+                }
+                infoDH.enable(true, true)
+            }
+            else {
+                resolve(verb)
+            }
+        })
     })
 }
 //#endregion
@@ -707,6 +752,10 @@ function dialog(selector, contentOrSetup = null, action = null) {
         else if (typeof contentOrSetup == 'object') {
             $modal.find('[data-modal-content]').each(function(index, element) {
                 var item = element.getAttribute('data-modal-content')
+                element.innerText = contentOrSetup[item]
+            })
+            $modal.find('[data-modal-content-html]').each(function(index, element) {
+                var item = element.getAttribute('data-modal-content-html')
                 element.innerHTML = contentOrSetup[item]
             })
         }

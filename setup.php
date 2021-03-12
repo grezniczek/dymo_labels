@@ -61,6 +61,7 @@ class setupPluginPage {
                 "toastLabelAdded" => $fw->tt("setup_toast_labeladded"),
                 "toastLabelRenamed" => $fw->tt("setup_toast_labelrenamed"),
                 "toastLabelDeleted" => $fw->tt("setup_toast_labeldeleted"),
+                "actionTagReplace" => $fw->tt("setup_info_actiontagreplace"),
             ),
             "labels" => $labels,
         );
@@ -492,13 +493,17 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                 </button>
             </div>
             <div class="modal-body">
-                <p>To embed a DYMO Labels widget on a data entry (or survey) page, use the <b>@DYMO-LABEL</b> action tag with these parameters:</p>
-                <textarea readonly data-modal-content="tag"></textarea>
-                <p>Optionally, insert a CSS selector into <em>target</em> for the widget to be rendered inside a matching element. When empty (or omitted), the widget will be rendered in the label portion of the field the action tag is added to.</p>
-                <p>Enter text or piping expressions for the label objects. Empty values will be overridden by the default values unless configured not to.</p>
+                <p><?= $fw->tt("setup_info_text") ?></p>
+                <textarea class="form-control dlem-actiontag" rows="10" data-modal-content-html="tag"></textarea>
+                <p><?= $fw->tt("setup_info_hinttarget") ?></p>
+                <p><?= $fw->tt("setup_info_hintvalue") ?></p>
             </div>
             <div class="modal-footer">
                 <div class="dlem-label-id align-left" data-modal-content="id"></div>
+                <button
+                    type="button"
+                    class="btn btn-success btn-sm"
+                    data-modal-action="copy"><i class="fas fa-copy"></i></button>
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"
