@@ -48,3 +48,9 @@ Usage:
 - `data`: The data used to fill the label objects, given as key-value pairs. Keys are the names of the label object as shown/defined in the label configuration. Values are strings; piping is supported. Values will be transformed as configured for the label.
 
 The action tag parameter must be valid JSON. The plugin page provides templates for labels that can be copy/pasted.
+
+## Changelog
+
+Version | Description
+------- | -----------------------
+v0.0.1  | Still in development.
