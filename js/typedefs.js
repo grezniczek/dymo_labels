@@ -113,6 +113,7 @@
  *  default: string
  *  readOnly: boolean
  *  multiline: boolean
+ *  allowEmpty: boolean
  * }}
  */
 

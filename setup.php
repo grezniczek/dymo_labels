@@ -303,6 +303,10 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                             <input type="checkbox" class="custom-control-input" data-content="readonly" id="">
                             <label class="custom-control-label" for=""><?= $fw->tt("setup_config_readonly") ?></label>
                         </div>
+                        <div class="custom-control custom-switch ml-2">
+                            <input type="checkbox" class="custom-control-input" data-content="allowempty" id="">
+                            <label class="custom-control-label" for=""><?= $fw->tt("setup_config_allowempty") ?></label>
+                        </div>
                     </div>
                     <div class="form-group mt-2">
                         <textarea placeholder="<?= $fw->tt("setup_config_defaultvalue") ?>" title="<?= $fw->tt("setup_config_defaultvalue") ?>" data-toggle="tooltip" data-placement="top" data-content="default" rows="2" class="form-control form-control-sm">This is a default value</textarea>
@@ -330,6 +334,10 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
                         <div class="custom-control custom-switch ml-2">
                             <input type="checkbox" class="custom-control-input" data-content="multiline" id="">
                             <label class="custom-control-label" for=""><?= $fw->tt("setup_config_multiline") ?></label>
+                        </div>
+                        <div class="custom-control custom-switch ml-2">
+                            <input type="checkbox" class="custom-control-input" data-content="allowempty" id="">
+                            <label class="custom-control-label" for=""><?= $fw->tt("setup_config_allowempty") ?></label>
                         </div>
                     </div>
                     <div class="form-group mt-2">
@@ -470,20 +478,24 @@ print "<p><a target=\"_blank\" href=\"{$fw->getUrl("public.php", true)}&template
     data-backdrop="static"
     data-keyboard="false"
 >
-    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-info-title" id="modal-info-title">
-                    <b><?= $fw->tt("setup_info_title")?></b>
+                    <?= $fw->tt("setup_info_title")?>: <b>
+                        <span class="dlem-label-name" data-modal-content="name"></span>
+                    </b><br> 
+                    <span class="dlem-label-desc" data-modal-content="desc"></span>
                 </h5>
                 <button type="button" class="close" data-modal-action="dismiss" aria-label="<?= $fw->tt("dialog_close") ?>">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-
-                <p>TODO</p>
-
+                <p>To embed a DYMO Labels widget on a data entry (or survey) page, use the <b>@DYMO-LABEL</b> action tag with these parameters:</p>
+                <textarea readonly data-modal-content="tag"></textarea>
+                <p>Optionally, insert a CSS selector into <em>target</em> for the widget to be rendered inside a matching element. When empty (or omitted), the widget will be rendered in the label portion of the field the action tag is added to.</p>
+                <p>Enter text or piping expressions for the label objects. Empty values will be overridden by the default values unless configured not to.</p>
             </div>
             <div class="modal-footer">
                 <div class="dlem-label-id align-left" data-modal-content="id"></div>

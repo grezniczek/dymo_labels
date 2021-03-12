@@ -126,6 +126,7 @@ function generateInitialConfig() {
                 type: isText ? 'Text' : 'Graphic',
                 readOnly: false,
                 multiline: false,
+                allowEmpty: false,
             }
         }
     })
@@ -242,6 +243,8 @@ function fileChanged() {
 function showInfo(label) {
     dialog('#modal-info', { 
         id: label.id,
+        name: label.name,
+        desc: label.desc
     })
 }
 //#endregion
@@ -350,6 +353,7 @@ function configureLabel(label) {
             $row.attr('data-object-name', loi.name)
             $row.find('[data-content="name"]').text(loi.name).attr('title', loi.desc).tooltip()
             $row.find('[data-content="readonly"]').prop('checked', loi.readOnly).attr('id', 'readonly-' + counter).siblings('label').attr('for', 'readonly-' + counter)
+            $row.find('[data-content="allowempty"]').prop('checked', loi.allowEmpty).attr('id', 'allowempty-' + counter).siblings('label').attr('for', 'allowempty-' + counter)
             $row.find('[data-content="transform"]').val(loi.transform)
             $row.find('[data-content="default"]').val(loi.default).attr('id', 'textarea-' + counter)
             $row.find('[data-content="multiline"]').prop('checked', loi.multiline).attr('id', 'multiline-' + counter).on('change', function() {
@@ -424,6 +428,7 @@ function configureLabel(label) {
                         default: $obj.find('[data-content="default"]').val().toString(),
                         multiline: $obj.find('[data-content="multiline"]').prop('checked'),
                         readOnly: $obj.find('[data-content="readonly"]').prop('checked'),
+                        allowEmpty: $obj.find('[data-content="allowempty"]').prop('checked'),
                         // @ts-ignore
                         transform: $obj.find('[data-content="transform"]').val().toString(),
                         // @ts-ignore

@@ -121,7 +121,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             "name" => $data["name"],
             "desc" => $data["desc"],
             "xml" => $this->validateXml($data["xml"]),
-            "filename" => data["filename"],
+            "filename" => $data["filename"],
             "config" => $this->sanitizeLabelConfig($data["config"]),
         );
         $key = "label-{$guid}";
@@ -208,6 +208,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                 "transform" => $transform,
                 "multiline" => $loi["multiline"] === true,
                 "readOnly" => $loi["readOnly"] === true,
+                "allowEmpty" => $loi["allowEmpty"] === true,
                 "default" => $loi["default"],
             );
             $config["objects"][$object["name"]] = $object;
