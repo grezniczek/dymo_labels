@@ -248,7 +248,7 @@ function showInfo(label) {
     tagInfo += '\n  \'data\': {'
     Object.keys(label.config.objects).forEach(function(key) {
         var loi = label.config.objects[key]
-        if (loi.transform != 'R') {
+        if (loi.transform != 'R' && !loi.readOnly) {
             tagInfo += '\n    \'' + loi.name + '\': \'' + config.strings.actionTagReplace + '\','
         }
     })

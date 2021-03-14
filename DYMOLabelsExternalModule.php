@@ -1,7 +1,6 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
 use DE\RUB\REDCapEMLib\Crypto;
-use DE\RUB\REDCapEMLib\Project;
 use Exception;
 use ExternalModules\AbstractExternalModule;
 use SimpleXMLElement;
@@ -12,6 +11,7 @@ use Throwable;
  */
 class DYMOLabelsExternalModule extends AbstractExternalModule {
 
+    const atDymoLabel = "@DYMO-LABEL";
 
     /**
      * Control whether the plugin link is displayed.
@@ -53,6 +53,13 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         }
     }
 
+
+    function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance) {
+
+        if (!class_exists("ActionTagHelper")) require_once("classes/ActionTagHelper.php");
+        $tags = ActionTagHelper::getActionTags([ self::atDymoLabel ], null, [ $instrument ]);
+        
+    }
 
 
 
