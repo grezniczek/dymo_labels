@@ -62,6 +62,7 @@ class setupPluginPage {
                 "toastLabelRenamed" => $fw->tt("setup_toast_labelrenamed"),
                 "toastLabelDeleted" => $fw->tt("setup_toast_labeldeleted"),
                 "actionTagReplace" => $fw->tt("setup_info_actiontagreplace"),
+                "widgetLabel" => $fw->tt("widget_label"),
             ),
             "labels" => $labels,
         );

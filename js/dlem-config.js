@@ -243,6 +243,7 @@ function fileChanged() {
 function showInfo(label) {
     var tagInfo = '@DYMO-LABEL={'
     tagInfo += '\n  \'id\': \'' + label.id + '\','
+    tagInfo += '\n  \'button\': \'' + config.strings.widgetLabel + '\','
     tagInfo += '\n  \'target\': \'\','
     tagInfo += '\n  \'data\': {'
     Object.keys(label.config.objects).forEach(function(key) {

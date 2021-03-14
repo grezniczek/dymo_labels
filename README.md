@@ -34,6 +34,7 @@ Usage:
 ```JS
 @DYMO-LABEL={
     'id': 'xxxx-xxxx-xxxx',
+    'button': 'Button Label',
     'target': 'css-selector', // optional; default = appended to the label portion of the current field
     'data': {
         'LABELOBJECT1': 'Name: [firstname] [lastname]',
@@ -44,6 +45,7 @@ Usage:
 ```
 
 - `id`: The label ID as displayed in the label info or other various dialogs.
+- `button`: The button label of the DYMO Labels widget.
 - `target`: A CSS selector. The print widget will be displayed in the first matching element. This is optional. When not specified, the widget is added to the label portion of the field with the action tag.
 - `data`: The data used to fill the label objects, given as key-value pairs. Keys are the names of the label object as shown/defined in the label configuration. Values are strings; piping is supported. Values will be transformed as configured for the label.
 
