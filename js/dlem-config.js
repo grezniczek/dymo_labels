@@ -268,7 +268,7 @@ function showInfo(label) {
                 // Copy textarea to clipboard
                 try {
                     /** @type {HTMLInputElement} */ // @ts-ignore
-                    var textarea = infoDH.modal.find('textarea[data-modal-content="tag"]')[0]
+                    var textarea = infoDH.modal.find('textarea[data-modal-content-html="tag"]')[0]
                     textarea.focus()
                     textarea.select()
                     textarea.setSelectionRange(0,9999999)
