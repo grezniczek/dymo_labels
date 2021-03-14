@@ -192,6 +192,17 @@ function submitData(action, payload) {
 //#endregion
 
 //#region Setup
+EM.DYMOLabelWidget_init = function(data) {
+    config = data
+    log('Initializing widgets...', data)
+
+
+
+    // Move widgets to correct places.
+    // When button is pressed ...
+    //   call updatePipeReceivers(field, event_id, value) for each field on this form
+    //   assemble GET and call widgetEndpoint in new window (or iframe)
+}
 
 EM.DYMOLabelPrint_init = function(data) {
     

@@ -58,7 +58,49 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
         if (!class_exists("ActionTagHelper")) require_once("classes/ActionTagHelper.php");
         $tags = ActionTagHelper::getActionTags([ self::atDymoLabel ], null, [ $instrument ]);
-        
+        // Construct widget HTML
+        $html = "<!-- DYMO Labels EM -->\n<div style=\"display:none;\">";
+        $widgetNo = 0;
+        if (count($tags)) {
+            foreach ($tags[self::atDymoLabel] as $field => $params) {
+                foreach ($params as $json) {
+                    $widgetParams = json_decode($json, true);
+                    if ($widgetParams) {
+                        $widgetNo++;
+                        $button_label = strlen(trim($widgetParams["button"])) ? trim($widgetParams["button"]) : $this->tt("widget_label");
+                        $range = strlen(trim($widgetParams["range"])) ? trim($widgetParams["range"]) : "";
+                        if (strlen($range)) {
+                            $range = \Piping::pipeSpecialTags($range, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
+                            $range = \Piping::replaceVariablesInLabel($range, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
+                        }
+                        $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\">";
+                        $html .= "<button class=\"btn btn-primary\">{$button_label}</button>";
+                        $html .= "<span style=\"display:none;\">";
+                        $html .= "<span data-dlem-range>{$range}</span>";
+                        foreach ($widgetParams["data"] as $key => $val) {
+                            $val = \Piping::pipeSpecialTags($val, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
+                            $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
+                            $html .= "<span data-dlem-object=\"{$key}\">{$val}</span>";
+                        }
+                        $html .= "</span></span>";
+                        $html = str_replace("\n", "<br>", $html);
+                    }
+                }
+            }
+        }
+        $html .= "</div>\n";
+        if ($widgetNo > 0) {
+            $fw = $this->framework;
+            // Output widget(s) html
+            print $html;
+            $this->includeJS("js/dlem-print.js"); // TODO - Inline for survey
+            $settings = array(
+                "debug" => $fw->getProjectSetting("js-debug") == true,
+                "widgetEndpoint" => $fw->getUrl("public.php", true),
+                "eventId" => $event_id * 1,
+            );
+            print "<script>$(function() { window.ExternalModules.DYMOLabelWidget_init(" . json_encode($settings) . "); });</script>";
+        }
     }
 
 

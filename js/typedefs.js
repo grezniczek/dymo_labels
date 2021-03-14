@@ -16,8 +16,11 @@
  *  strings: DYMOLabelStrings
  *  print: DYMOLabelPrintData
  *  labels: Object<string, LabelData>
+ * widgetEndpoint: string
+ * eventId: Number
  * }}
  */
+
 
 /**
  * @typedef DYMOLabelStrings
