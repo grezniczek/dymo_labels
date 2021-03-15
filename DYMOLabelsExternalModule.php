@@ -93,7 +93,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             $fw = $this->framework;
             // Output widget(s) html
             print $html;
-            $this->includeJS("js/dlem-print.js"); // TODO - Inline for survey
+            $this->includeJS("js/dlem.js"); // TODO - Inline for survey
             $settings = array(
                 "debug" => $fw->getProjectSetting("js-debug") == true,
                 "widgetEndpoint" => $fw->getUrl("public.php", true),

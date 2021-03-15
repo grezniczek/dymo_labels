@@ -33,12 +33,14 @@ Usage:
 
 ```JS
 @DYMO-LABEL={
-    'id': 'xxxx-xxxx-xxxx',
-    'button': 'Button Label',
-    'target': 'css-selector', // optional; default = appended to the label portion of the current field
-    'data': {
-        'LABELOBJECT1': 'Name: [firstname] [lastname]',
-        'LABELOBJECT2': '[dob]',
+    "id": "xxxx-xxxx-xxxx",
+    "button": "Button Label",
+    "target": "css-selector", // optional; default = appended to the label portion of the current field
+    "range": "COL:A-C,ROW:1-2", // optional range definitions
+    "data": {
+        "NAME": "[lastname], [firstname]",
+        "DOB": "[dob]",
+        "STORE": "Location: {COL}{ROW}",
         ...
     }
 }
