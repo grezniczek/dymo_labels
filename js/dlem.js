@@ -1091,7 +1091,7 @@ function initPrinting($container) {
                 setUIState($container)
                 $container.find('.initialized').show(200)
                 $container.find('.initializing').hide()
-                if (config.print.auto) {
+                if (config.print.auto && selectedPrinter) {
                     printLabels($container)
                 }
             })
