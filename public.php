@@ -305,7 +305,7 @@ class publicEndpoint
                     <h5 class="modal-title dlem-preview-title" id="modal-preview-title">
                         <b><?= $fw->tt("pp_preview") ?></b>
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="<?= $fw->tt("dialog_close") ?>">
+                    <button type="button" class="close" data-modal-action="close" aria-label="<?= $fw->tt("dialog_close") ?>">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -314,7 +314,7 @@ class publicEndpoint
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-command="print-single" class="btn btn-secondary btn-sm"><?= $fw->tt("pp_printsingle") ?></button>
-                    <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal"><?= $fw->tt("dialog_close") ?></button>
+                    <button type="button" class="btn btn-primary btn-sm" data-modal-action="close"><?= $fw->tt("dialog_close") ?></button>
                 </div>
             </div>
         </div>

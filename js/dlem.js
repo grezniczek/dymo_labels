@@ -1573,7 +1573,13 @@ function previewLabel(labelNo) {
     var png = DLF.renderLabel(labelXml, renderParamsXml, selectedPrinter.name)
     $('img.label-preview').attr('src', 'data:image/png;base64,' + png)
     $('[data-command="print-single"]').attr('data-label', labelNo)
-    $('#dlem-modal-preview').modal('show')
+    var z = $('#dlem-widget-modal-print').css('z-index')
+    $('#dlem-widget-modal-print').css('z-index', 0)
+    dialog('#dlem-modal-preview')
+    .then(function() {
+        $('#dlem-widget-modal-print').css('z-index', z)
+    })
+
 }
 
 /**
@@ -1726,6 +1732,9 @@ function calibrate() {
     // Update values
     $('#offset-dx').val(selectedPrinter.calData.dx)
     $('#offset-dy').val(selectedPrinter.calData.dy)
+    var z = $('#dlem-widget-modal-print').css('z-index')
+    $('#dlem-widget-modal-print').css('z-index', 0)
+
     dialog('#dlem-modal-calibrate', {}, function($modal, verb) {
         return new Promise(function(resolve, reject) {
             if (verb == 'apply') {
@@ -1749,6 +1758,9 @@ function calibrate() {
             }
             resolve(verb)
         })
+    })
+    .then(function() {
+        $('#dlem-widget-modal-print').css('z-index', z)
     })
 }
 

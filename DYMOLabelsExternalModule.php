@@ -231,13 +231,13 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
 <!-- Modal: Preview -->
 <div class="modal fade dlem-modal" id="dlem-modal-preview" tabindex="-1" role="dialog" aria-labelledby="modal-preview-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-preview-title" id="modal-preview-title">
                     <b><?= $fw->tt("pp_preview") ?></b>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="<?= $fw->tt("dialog_close") ?>">
+                <button type="button" class="close" data-modal-action="close" aria-label="<?= $fw->tt("dialog_close") ?>">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -246,7 +246,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             </div>
             <div class="modal-footer">
                 <button type="button" data-command="print-single" class="btn btn-secondary btn-sm"><?= $fw->tt("pp_printsingle") ?></button>
-                <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal"><?= $fw->tt("dialog_close") ?></button>
+                <button type="button" class="btn btn-primary btn-sm" data-modal-action="close"><?= $fw->tt("dialog_close") ?></button>
             </div>
         </div>
     </div>
@@ -254,7 +254,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
 <!-- Modal: Calibrate -->
 <div class="modal fade dlem-modal" id="dlem-modal-calibrate" tabindex="-1" role="dialog" aria-labelledby="modal-calibrate-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-calibrate-title" id="modal-calibrate-title">
