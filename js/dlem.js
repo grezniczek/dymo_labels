@@ -1044,7 +1044,7 @@ function setupPrintEvents($container) {
         if ($btn.length && $btn.is('button') ) {
             var cmd = $btn.attr('data-command')
             switch (cmd) {
-                case 'refresh': setupPrinters($container); break;
+                case 'refresh': setupPrinters($container, true); break;
                 case 'print': printLabels($container); break;
                 case 'calibrate': calibrate(); break;
                 case 'print-single': 
@@ -1058,6 +1058,7 @@ function setupPrintEvents($container) {
     })
 }
 
+var dlfStatus = null
 /**
  * 
  * @param {JQuery} $container 
@@ -1068,6 +1069,10 @@ function initPrinting($container) {
     if (printers.length == 0) {
         DLF.init()
     }
+    if (dlfStatus == null) {
+        dlfStatus = DLF.checkEnvironment()
+        log('DYMO Framework Status:', dlfStatus)
+    }
 
     $container.find('.initialized').hide()
     $container.find('.initializing').show()
@@ -1075,14 +1080,12 @@ function initPrinting($container) {
     $container.find('tbody.labels-body tr.label').remove()
 
     setTimeout(function() {
-        var status = DLF.checkEnvironment()
-        log('DYMO Framework Status:', status)
     
-        if (status.isBrowserSupported && 
-            status.isFrameworkInstalled && 
-            status.isWebServicePresent) {
+        if (dlfStatus.isBrowserSupported && 
+            dlfStatus.isFrameworkInstalled && 
+            dlfStatus.isWebServicePresent) {
             
-            setupPrinters($container)
+            setupPrinters($container, false)
             .then(function() {
                 setupLabels($container)
                 setUIState($container)
@@ -1097,7 +1100,7 @@ function initPrinting($container) {
             })
         }
         else {
-            $container.find('[data-dlem-error]').html(status.errorDetails)
+            $container.find('[data-dlem-error]').html(dlfStatus.errorDetails)
             $container.find('.initializing').hide()
         }
     }, 100);
@@ -1244,12 +1247,16 @@ function selectPrinter(e, $container) {
 /**
  * Sets up the printer selection UI (initially and after refresh)
  * @param {JQuery} $container
+ * @param {boolean} force
  */
-function setupPrinters($container) {
+function setupPrinters($container, force) {
     return new Promise(function(resolve, reject) {
-        printers = DLF.getPrinters()
+        if (printers.length == 0 || force) {
+            printers = DLF.getPrinters()
+        }
         selectedPrinter = null
-        
+        var hasCalData = force ? false : true
+
         // Clone template and clear table
         var $table = $container.find('table.printers')
         $container.find('tr.no-printer').show()
@@ -1257,6 +1264,7 @@ function setupPrinters($container) {
         if (printers.length) {
             for (var i = 0; i < printers.length; i++) {
                 var printer = printers[i]
+                hasCalData = hasCalData && (printer.calData != undefined)
                 printer.listIndex = i.toString()
                 var $row = $table.find('tr.printer-template').clone()
                 $row.removeClass('printer-template').addClass('printer')
@@ -1301,7 +1309,12 @@ function setupPrinters($container) {
             log('Printers found:', printers)
             resolve()
         }
-        getPrinterCalibration().then(done, done)
+        if (hasCalData) {
+            done()
+        }
+        else {
+            getPrinterCalibration().then(done, done)
+        }
     })
 }
 

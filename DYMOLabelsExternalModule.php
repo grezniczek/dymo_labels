@@ -231,7 +231,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
 
 <!-- Modal: Preview -->
 <div class="modal fade dlem-modal" id="dlem-modal-preview" tabindex="-1" role="dialog" aria-labelledby="modal-preview-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-preview-title" id="modal-preview-title">
