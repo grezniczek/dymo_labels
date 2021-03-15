@@ -57,6 +57,8 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance) {
 
         if (!class_exists("ActionTagHelper")) require_once("classes/ActionTagHelper.php");
+        $labels = $this->getLabels();
+        $usedLabels = array();
         $tags = ActionTagHelper::getActionTags([ self::atDymoLabel ], null, [ $instrument ]);
         // Construct widget HTML
         $html = "<!-- DYMO Labels EM -->\n<div style=\"display:none;\">";
@@ -65,22 +67,31 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             foreach ($tags[self::atDymoLabel] as $field => $params) {
                 foreach ($params as $json) {
                     $widgetParams = json_decode($json, true);
-                    if ($widgetParams) {
+                    if ($widgetParams && isset($labels[$widgetParams["id"]])) {
+                        $id = $widgetParams["id"];
+                        $label = $labels[$id];
+                        $usedLabels[$id] = $labels[$id];
                         $widgetNo++;
                         $button_label = strlen(trim($widgetParams["button"])) ? trim($widgetParams["button"]) : $this->tt("widget_label");
+                        $button_style = isset($widgetParams["style"]) ? trim($widgetParams["style"]) : "margin-bottom:0.5rem;";
+                        $button_class = isset($widgetParams["class"]) ? " ".trim($widgetParams["class"]) : "";
                         $range = strlen(trim($widgetParams["range"])) ? trim($widgetParams["range"]) : "";
+                        $auto = " data-dlem-auto=\"" . ((isset($widgetParams["auto"]) && $widgetParams["auto"] == true) ? "1" : "0") . "\"";
                         if (strlen($range)) {
                             $range = \Piping::pipeSpecialTags($range, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
                             $range = \Piping::replaceVariablesInLabel($range, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
                         }
-                        $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\">";
-                        $html .= "<button class=\"btn btn-primary\">{$button_label}</button>";
+                        $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-label=\"{$id}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\" data-dlem-eventid=\"{$event_id}\"{$auto}>";
+                        $html .= "<button class=\"btn btn-primary btn-sm{$button_class}\" style=\"{$button_style}\">{$button_label}</button>";
                         $html .= "<span style=\"display:none;\">";
                         $html .= "<span data-dlem-range>{$range}</span>";
-                        foreach ($widgetParams["data"] as $key => $val) {
+                        foreach($label["config"]["objects"] as $loi) {
+                            if ($loi["transform"] == "R") continue;
+                            $val = ($loi["readOnly"] || !isset($widgetParams["data"][$loi["name"]])) ?
+                                $loi["default"] : $widgetParams["data"][$loi["name"]];
                             $val = \Piping::pipeSpecialTags($val, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
                             $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
-                            $html .= "<span data-dlem-object=\"{$key}\">{$val}</span>";
+                            $html .= "<span data-dlem-object=\"{$loi["name"]}\">{$val}</span>";
                         }
                         $html .= "</span></span>";
                         $html = str_replace("\n", "<br>", $html);
@@ -98,8 +109,48 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                 "debug" => $fw->getProjectSetting("js-debug") == true,
                 "widgetEndpoint" => $fw->getUrl("public.php", true),
                 "eventId" => $event_id * 1,
+                "labels" => $usedLabels,
             );
             print "<script>$(function() { window.ExternalModules.DYMOLabelWidget_init(" . json_encode($settings) . "); });</script>";
+
+?>
+<!-- DYMO Labels EM Print Modal -->
+<div
+    class="modal fade"
+    id="dlem-widget-modal-print"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="dlem-modal-print-title"
+    aria-hidden="true"
+    data-backdrop="static"
+    data-keyboard="false"
+>
+    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dlem-modal-print-title">
+                    <?= $fw->tt("widget_modal_title")?>: <b>
+                        <span class="dlem-label-name" data-modal-content="name"></span>
+                    </b><br> 
+                    <span style="font-size: 80%;" data-modal-content="desc"></span>
+                </h5>
+                <button type="button" class="close" data-modal-action="dismiss" aria-label="<?= $fw->tt("dialog_close") ?>">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <iframe style="width:100%;border:none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-modal-action="close"><?=$fw->tt("dialog_close")?></button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php
         }
     }
 

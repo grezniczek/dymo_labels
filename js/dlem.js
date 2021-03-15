@@ -871,9 +871,69 @@ EM.DYMOLabelWidget_init = function(data) {
     config = data
     log('Initializing widgets...', data)
 
+    $('[data-dlem-print-widget]').each(function() {
+        var $widget = $(this)
+        var id = $widget.attr('data-dlem-label')
+        var field = $widget.attr('data-dlem-field')
+        var target = $widget.attr('data-dlem-target')
+        var eventid = $widget.attr('data-dlem-eventid')
+        var classStart = 'piperec-' + eventid + '-'
+        var $target = target == '' ? $('tr[sq_id="' + field + '"] td.labelrc') : $(target)
+        if ($target.length) {
+            $target.append($widget)
+            $widget.find('button').on('click', function(e) {
+                e.preventDefault()
+                $widget.find('.piping_receiver').each(function() {
+                    var span = this
+                    span.classList.forEach(function(className) {
+                        if (className.startsWith(classStart)) {
+                            var srcField = className.split('-')[2]
+                            var val = $('input[name="' + srcField + '"]').val()
+                            // @ts-ignore
+                            updatePipeReceivers(srcField, eventid, val)
+                        }
+                    })
+                })
+                
+                var data = {
+                    id: id,
+                    range: $widget.find('[data-dlem-range]').text(),
+                    auto: $widget.attr('data-dlem-auto') == '1',
+                    objects: {}
+                }
+                $widget.find('[data-dlem-object]').each(function() {
+                    // Clone so we can manipulate for preserving line breaks
+                    var $obj = $(this).clone(false)
+                    $obj.find('br').before('\\n').remove()
+                    var name = $obj.attr('data-dlem-object')
+                    var val = $obj.text()
+                    data.objects[name] = val
+                })
+                // Construct GET
+                var get = config.widgetEndpoint + '&template=' + id
+                if (data.range.length) {
+                    get += '&range=' + encodeURIComponent(data.range)
+                }
+                if (data.auto) {
+                    get += '&auto'
+                }
+                Object.keys(data.objects).forEach(function(key) {
+                    get += '&' + config.labels[id].config.objects[key].transform + '_' + encodeURIComponent(key) + '=' + encodeURIComponent(data.objects[key])
+                })
+                dialog('#dlem-widget-modal-print', function(modal) {
+                    /** @type {JQuery} */
+                    var $modal = modal
+                    $modal.find('[data-modal-content="name"]').text(config.labels[id].name)
+                    $modal.find('[data-modal-content="desc"]').text(config.labels[id].desc)
+                })
 
+                log('Print', data, get)
+                return false
+            })
+        }
+        
+    })
 
-    // Move widgets to correct places.
     // When button is pressed ...
     //   call updatePipeReceivers(field, event_id, value) for each field on this form
     //   assemble GET and call widgetEndpoint in new window (or iframe)

@@ -35,6 +35,8 @@ Usage:
 @DYMO-LABEL={
     "id": "xxxx-xxxx-xxxx",
     "button": "Button Label",
+    "style": "bottom-margin:0.5rem;", // optional style that is added to <button>
+    "class": "class1 class2", // optional classes that are added to <button>
     "target": "css-selector", // optional; default = appended to the label portion of the current field
     "range": "COL:A-C,ROW:1-2", // optional range definitions
     "data": {
@@ -42,15 +44,19 @@ Usage:
         "DOB": "[dob]",
         "STORE": "Location: {COL}{ROW}",
         ...
-    }
+    },
+    "auto": true | false
 }
 ```
 
 - `id`: The label ID as displayed in the label info or other various dialogs.
-- `button`: The button label of the DYMO Labels widget.
+- `button`: The button label of the DYMO Labels widget (optional; default: 'Print label').
+- `style`: CSS Style to be added directly to the `<button>` element (optional; default: 'bottom-margin:0.5rem;').
+- `class`: CSS classes to be added to the `<button>` element (optional).
 - `target`: A CSS selector. The print widget will be displayed in the first matching element. This is optional. When not specified, the widget is added to the label portion of the field with the action tag.
 - `range`: Range definition(s). A comma-separated list of ranges. Ranges are defined with a label, a colon, and a numeric or alphabetic range. E.g. `COPY:1-3` defines a range named "COPY" that runs from 1 to 3 inclusive; `LETTER:A-B` represents the range of the letters A thru B. By inserting `{COPY}` or `{LETTER}` into the value for a label object, this will be replaced. When both these ranges were used together, they would expand to A1, A2, A3, B1, B2, B3 when written as `{LETTER}{COPY}`, resulting in 6 labels total.
 - `data`: The data used to fill the label objects, given as key-value pairs. Keys are the names of the label object as shown/defined in the label configuration. Values are strings; piping is supported. Values will be transformed as configured for the label.
+- `auto`: Determines, whether printing starts automatically. Default: `false`.
 
 The action tag parameter must be valid JSON. The plugin page provides templates for labels that can be copy/pasted.
 
