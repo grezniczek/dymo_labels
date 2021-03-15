@@ -1,4 +1,4 @@
-/* DYMO Label EM - Project Configuration */
+/* DYMO Label External Module */
 // @ts-check
 ;(function() {
 
@@ -29,14 +29,19 @@ var addState = {
 /** @type {DataTables.Api} */
 var labelsTable;
 
+/** @type {DYMOLabelFramework_PrinterInfo} */
+var selectedPrinter = null
+
 /** @type {DYMOLabelFramework_PrinterInfo[]} */
 var printers = []
 
 /** @type {boolean} Indicates whether a print process is currently ongoing */
 var printing = false
 
-//#endregion
+/** @type {DYMOLabelFramework} */
+var DLF = null
 
+//#endregion
 
 //#region Add a label
 
@@ -1000,12 +1005,6 @@ function getTableData() {
 
 //#region Print Preview & Print
 
-/** @type {DYMOLabelFramework_PrinterInfo} */
-var selectedPrinter = null
-
-/** @type DYMOLabelFramework */
-var DLF = null
-
 /**
  * Sets the UI state (highlights, messages, enable/disable buttons)
  */
@@ -1053,6 +1052,7 @@ function setUIState() {
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined)
 }
+
 /**
  * Selects a printer
  * @param {JQuery.ChangeEvent} e 
