@@ -24,14 +24,13 @@ class postEndpoint {
     <title>' . $fw->tt("module_name") . '</title>
 </head>
 <body>
-    <h3>' . $fw->tt("module_name") . '</h3>
 ';
         $doc_end = '
 </body>
 </html>';
 
         // Check whether anonymous access is allowed.
-        if ($pid !== null || !$fw->getSystemSetting("system-enable-post")) {
+        if ($pid == null || !$fw->getProjectSetting("enable-post") || !$fw->getSystemSetting("system-enable-post")) {
             // It's not.
             header("HTTP/1.1 403 Forbidden");
             exit;

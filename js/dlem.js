@@ -4,10 +4,10 @@
 
 //#region Variables
 
+/** @type {ExternalModules} */
 // @ts-ignore
 var EM = window.ExternalModules
 if (typeof EM == 'undefined') {
-    /** @type {ExternalModules} */
     EM = {}
     // @ts-ignore
     window.ExternalModules = EM
@@ -870,6 +870,7 @@ EM.DYMOLabelConfig_init = function(data) {
 EM.DYMOLabelWidget_init = function(data) {
     config = data
     log('Initializing widgets...', data)
+    setupPrintEvents($('.dlem-modal'))
 
     $('[data-dlem-print-widget]').each(function() {
         var $widget = $(this)
@@ -894,59 +895,184 @@ EM.DYMOLabelWidget_init = function(data) {
                         }
                     })
                 })
-                
-                var data = {
-                    id: id,
+                /** @type {DYMOLabelPrintData} */
+                var print = {
+                    template: id,
+                    errors: [],
                     range: $widget.find('[data-dlem-range]').text(),
                     auto: $widget.attr('data-dlem-auto') == '1',
-                    objects: {}
+                    labels: [],
                 }
-                $widget.find('[data-dlem-object]').each(function() {
-                    // Clone so we can manipulate for preserving line breaks
-                    var $obj = $(this).clone(false)
-                    $obj.find('br').before('\\n').remove()
-                    var name = $obj.attr('data-dlem-object')
-                    var val = $obj.text()
-                    data.objects[name] = val
+                var labelTpl = []
+                Object.keys(config.labels[id].config.objects).forEach(function(key) {
+                    var loi = config.labels[id].config.objects[key]
+                    var label = {
+                        name: key,
+                        type: loi.transform,
+                        value: loi.default
+                    }
+                    if (loi.transform == 'R') {
+                        label.value = ''
+                    }
+                    else if (!loi.readOnly) {
+                        // Get value from elements
+                        var $el = $widget.find('[data-dlem-object="' + key + '"]')
+                        if ($el.length) {
+                            var $obj = $el.clone(false)
+                            $obj.find('br').before('\\n').remove()
+                            var val = $obj.text().trim()
+                            if (val.length == 0 && !loi.allowEmpty) {
+                                val = loi.default
+                            }
+                            label.value = val
+                        }
+                    }
+                    // Add 
+                    labelTpl.push(label)
                 })
-                // Construct GET
-                var get = config.widgetEndpoint + '&template=' + id
-                if (data.range.length) {
-                    get += '&range=' + encodeURIComponent(data.range)
+
+                // Expand ranges
+                /** @type {DYMOLabelRange[]} */
+                var ranges = []
+                var rangeRegex = new RegExp('([A-Z0-9]+):([A-Z]|[a-z]|[0-9]+)-([A-Z]|[a-z]|[0-9]+)', 'i')
+                var alphaMaps = {
+                    'Upper': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    'Lower': 'abcdefghijklmnopqrstuvwxyz',
+                    'Numeric': ''
                 }
-                if (data.auto) {
-                    get += '&auto'
-                }
-                Object.keys(data.objects).forEach(function(key) {
-                    get += '&' + config.labels[id].config.objects[key].transform + '_' + encodeURIComponent(key) + '=' + encodeURIComponent(data.objects[key])
+                print.range.split(',').forEach(function(rpart) {
+                    var m = rangeRegex.exec(rpart)
+                    if (m) {
+                        /** @type {DYMOLabelRange} */
+                        var range = {
+                            id: m[1],
+                            start: m[2],
+                            end: m[3],
+                        }
+                        if ((alphaMaps.Upper.includes(range.start) && alphaMaps.Upper.includes(range.end))) {
+                            range.type = 'Upper'
+                            ranges.push(range)
+                        } 
+                        else if (alphaMaps.Lower.includes(range.start) && alphaMaps.Lower.includes(range.end)) {
+                            range.type = 'Lower'
+                            ranges.push(range)
+                        }
+                        else if (!alphaMaps.Upper.includes(range.start.toUpperCase()) && !alphaMaps.Upper.includes(range.end.toUpperCase())) {
+                            range.type = 'Numeric'
+                            ranges.push(range)
+                        }
+                        else {
+                            print.errors.push(config.strings.invalidRange + rpart)
+                        }
+                    }
                 })
+                /** @type {DYMOLabelItem[][]} */
+                var labels = []
+                labels.push(labelTpl)
+                ranges.forEach(function(range) {
+                    var alphaMap = alphaMaps[range.type]
+                    var start = range.type == 'Numeric' ? Number.parseInt(range.start) : alphaMap.search(range.start)
+                    var end = range.type == 'Numeric' ? Number.parseInt(range.end) : alphaMap.search(range.end)
+                    var delta = start > end ? -1 : 1
+                    // Copy over existing labels and initalize array to hold the new ones
+                    var unexpanded = labels
+                    labels = []
+                    var i = start
+                    while (i != end + delta) {
+                        var replaceWith = range.type == 'Numeric' ? i.toString() : alphaMap.substring(i, 1)
+                        var search = '{' + range.id + '}'
+                        unexpanded.forEach(function(uxLabel) {
+                            var label = createLabel(labelTpl, search, replaceWith)
+                            labels.push(label)
+                        })
+                        i = i + delta
+                    }
+                })
+                print.labels = labels
                 dialog('#dlem-widget-modal-print', function(modal) {
                     /** @type {JQuery} */
                     var $modal = modal
                     $modal.find('[data-modal-content="name"]').text(config.labels[id].name)
                     $modal.find('[data-modal-content="desc"]').text(config.labels[id].desc)
+                    config.print = print
+                    initPrinting($modal)
                 })
 
-                log('Print', data, get)
+                log('Print', print)
                 return false
             })
         }
-        
     })
-
-    // When button is pressed ...
-    //   call updatePipeReceivers(field, event_id, value) for each field on this form
-    //   assemble GET and call widgetEndpoint in new window (or iframe)
 }
 
+/**
+ * 
+ * @param {DYMOLabelItem[]} template 
+ * @param {string} search 
+ * @param {string} replace 
+ * @returns {DYMOLabelItem[]}
+ */
+function createLabel(template, search, replace) {
+    /** @type {DYMOLabelItem[]} */
+    var label = []
+    template.forEach(function(item) {
+        label.push({
+            name: item.name,
+            type: item.type,
+            value: item.value.replace(search, replace),
+        })
+    })
+    return label
+}
 
 EM.DYMOLabelPrint_init = function(data) {
     
     config = data
     log('Print page initializing:', config)
+
+    setupPrintEvents($('body'))
+    initPrinting($('body'))
+}
+
+/**
+ * 
+ * @param {JQuery} $container 
+ */
+function setupPrintEvents($container) {
+    $container.on('click', function(e) {
+        var $btn = e.target.hasAttribute('data-command') ? $(e.target) : $(e.target).parents('[data-command]')
+        if ($btn.length && $btn.is('button') ) {
+            var cmd = $btn.attr('data-command')
+            switch (cmd) {
+                case 'refresh': setupPrinters($container); break;
+                case 'print': printLabels($container); break;
+                case 'calibrate': calibrate(); break;
+                case 'print-single': 
+                var single = Number.parseInt($btn.attr('data-label'))
+                printSingleLabel(single, $container)
+                break;
+            }
+            e.preventDefault()
+            return false
+        }
+    })
+}
+
+/**
+ * 
+ * @param {JQuery} $container 
+ */
+function initPrinting($container) {
     // @ts-ignore
     DLF = dymo.label.framework
-    DLF.init()
+    if (printers.length == 0) {
+        DLF.init()
+    }
+
+    $container.find('.initialized').hide()
+    $container.find('.initializing').show()
+    $container.find('thead.labels-header').empty()
+    $container.find('tbody.labels-body tr.label').remove()
 
     setTimeout(function() {
         var status = DLF.checkEnvironment()
@@ -956,34 +1082,23 @@ EM.DYMOLabelPrint_init = function(data) {
             status.isFrameworkInstalled && 
             status.isWebServicePresent) {
             
-            setupPrinters()
+            setupPrinters($container)
             .then(function() {
-                setupLabels()
-    
-                $('[data-command=refresh]').on('click', setupPrinters)
-                $('[data-command=print]').on('click', printLabels)
-                $('[data-command=calibrate]').on('click', calibrate)
-                $('[data-command="print-single"]').on('click', function(e) {
-                    printSingleLabel(Number.parseInt(e.currentTarget.getAttribute('data-label')))
-                })
-                $('input[name=printer]').on('change', selectPrinter)
-
-    
-                setUIState()
-    
-                $('.initialized').show(200)
-                $('.initializing').hide(200)
+                setupLabels($container)
+                setUIState($container)
+                $container.find('.initialized').show(200)
+                $container.find('.initializing').hide()
                 if (config.print.auto) {
-                    printLabels()
+                    printLabels($container)
                 }
             })
             config.print.errors.forEach(function(err) {
-                $('#error').append('<p>' + err + '</p>')
+                $container.find('[data-dlem-error]').append('<p>' + err + '</p>')
             })
         }
         else {
-            $('#error').html(status.errorDetails)
-            $('.initializing').hide(200)
+            $container.find('[data-dlem-error]').html(status.errorDetails)
+            $container.find('.initializing').hide()
         }
     }, 100);
 }
@@ -1067,47 +1182,48 @@ function getTableData() {
 
 /**
  * Sets the UI state (highlights, messages, enable/disable buttons)
+ * @param {JQuery} $container
  */
-function setUIState() {
+function setUIState($container) {
     if (selectedPrinter == null && printers.length < 1) {
-        $('tr.no-printer').show()
-        $('.printers-card').addClass('border-danger')
+        $container.find('tr.no-printer').show()
+        $container.find('.printers-card').addClass('border-danger')
     }
     else {
-        $('tr.no-printer').hide()
-        $('.printers-card').removeClass('border-danger')
+        $container.find('tr.no-printer').hide()
+        $container.find('.printers-card').removeClass('border-danger')
     }
     if (config.print.labels.length == 0) {
-        $('tr.no-labels').show()
-        $('.labels-card').addClass('border-danger')
+        $container.find('tr.no-labels').show()
+        $container.find('.labels-card').addClass('border-danger')
     }
     else {
-        $('tr.no-labels').hide()
-        $('.labels-card').removeClass('border-danger')
+        $container.find('tr.no-labels').hide()
+        $container.find('.labels-card').removeClass('border-danger')
     }
-    $('[data-command=calibrate').prop('disabled', 
+    $container.find('[data-command=calibrate').prop('disabled', 
         selectedPrinter == null || 
         config.labels[config.print.template] == undefined)
 
     // Count labels
     var n = 0
-    $('input[data-label-include]').each(function() {
+    $container.find('input[data-label-include]').each(function() {
         if ($(this).prop('checked')) n++
     })
     if (n == 0) {
-        $('[data-command="select-all"]').prop('checked', false)
+        $container.find('[data-command="select-all"]').prop('checked', false)
     }
-    $('[data-command=print]').prop('disabled', 
+    $container.find('[data-command=print]').prop('disabled', 
         printing ||
         selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined ||
         n == 0)
-    $('[data-command=preview]').prop('disabled', 
+    $container.find('[data-command=preview]').prop('disabled', 
         selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined)
-    $('[data-command="print-single"]').prop('disabled', 
+    $container.find('[data-command="print-single"]').prop('disabled', 
         selectedPrinter == null || 
         config.print.labels.length == 0 || 
         config.labels[config.print.template] == undefined)
@@ -1116,25 +1232,27 @@ function setUIState() {
 /**
  * Selects a printer
  * @param {JQuery.ChangeEvent} e 
+ * @param {JQuery} $container
  */
-function selectPrinter(e) {
+function selectPrinter(e, $container) {
     var idx = $(e.target).val().toString()
     log('Selected printer #' + idx)
     selectedPrinter = printers[idx]
-    setUIState()
+    setUIState($container)
 }
 
 /**
  * Sets up the printer selection UI (initially and after refresh)
+ * @param {JQuery} $container
  */
-function setupPrinters() {
+function setupPrinters($container) {
     return new Promise(function(resolve, reject) {
         printers = DLF.getPrinters()
         selectedPrinter = null
         
         // Clone template and clear table
-        var $table = $('table.printers')
-        $('tr.no-printer').show()
+        var $table = $container.find('table.printers')
+        $container.find('tr.no-printer').show()
         $table.find('tr.printer').remove()
         if (printers.length) {
             for (var i = 0; i < printers.length; i++) {
@@ -1157,13 +1275,13 @@ function setupPrinters() {
                 if (printer.isTwinTurbo) {
                     $row.find('input.printer-roll-left')
                         .attr('name', 'printer-roll-' + i)
-                        .attr('id', 'printer-roll-left-' + i)
+                        .attr('id', 'dlem-printer-roll-left-' + i)
                         .prop('checked', true)
-                    $row.find('label.printer-roll-left').attr('for', 'printer-roll-left-' + i)
+                    $row.find('label.printer-roll-left').attr('for', 'dlem-printer-roll-left-' + i)
                     $row.find('input.printer-roll-right')
                         .attr('name', 'printer-roll-' + i)
-                        .attr('id', 'printer-roll-right-' + i)
-                    $row.find('label.printer-roll-right').attr('for', 'printer-roll-right-' + i)
+                        .attr('id', 'dlem-printer-roll-right-' + i)
+                    $row.find('label.printer-roll-right').attr('for', 'dlem-printer-roll-right-' + i)
                 }
                 else {
                     $row.find('span.twinturbo').hide()
@@ -1174,9 +1292,12 @@ function setupPrinters() {
                 $table.append($row)
             }
         }
+        $container.find('input[name=printer]').on('change', function(e) {
+            selectPrinter(e, $container)
+        })
         var done = function() {
             $table.find('tr.printer').show()
-            setUIState()
+            setUIState($container)
             log('Printers found:', printers)
             resolve()
         }
@@ -1186,8 +1307,9 @@ function setupPrinters() {
 
 /**
  * Renders the labels table
+ * @param {JQuery} $container
  */
-function setupLabels() {
+function setupLabels($container) {
 
     if (config.print.labels.length < 1) return
 
@@ -1226,11 +1348,12 @@ function setupLabels() {
     for (var col = 0; col < cols.length; col++) {
         $row.append('<th scope="col">' + cols[col].name + '</th>')
     }
-    $('.labels-header').append($row)
-    $('[data-command="select-all"]').on('change', function() {
-        var all = $('input[data-command="select-all"]').prop('checked')
-        $('input[data-label-include]').prop('checked', all)
-        setUIState()
+    $container.find('.labels-header').append($row)
+    var $selectAll = $container.find('[data-command="select-all"]')
+    $selectAll.on('change', function() {
+        var all = $container.find('input[data-command="select-all"]').prop('checked')
+        $container.find('input[data-label-include]').prop('checked', all)
+        setUIState($container)
     })
     // Label rows
     for (var row = 0; row < rows.length; row++) {
@@ -1271,9 +1394,9 @@ function setupLabels() {
                 var $chk = $(e.currentTarget).find('[data-label-include]')
                 $chk.prop('checked', !$chk.prop('checked'))
             }
-            setUIState()
+            setUIState($container)
         })
-        $('.labels-body').append($row)
+        $container.find('.labels-body').append($row)
     }
 }
 
@@ -1339,9 +1462,13 @@ function emptyPng() {
 }
 
 
-function printLabels() {
+/**
+ * 
+ * @param {JQuery} $container 
+ */
+function printLabels($container) {
     // Disable button
-    $('[data-command=print]').prop('disabled', true)
+    $container.find('[data-command=print]').prop('disabled', true)
     // Get calibration data
     var calData = selectedPrinter.calData
     /** @type {DYMOLabelFramework_PrintParams} */
@@ -1351,11 +1478,11 @@ function printLabels() {
         flowDirection: DLF.FlowDirection.LeftToRight
     }
     if (selectedPrinter.isTwinTurbo) {
-        var left = $('#printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
+        var left = $container.find('#dlem-printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
         printParams.twinTurboRoll = left ? DLF.TwinTurboRoll.Left : DLF.TwinTurboRoll.Right
     }
     // Print all checked labels
-    var $labels = $('input[data-label-include]')
+    var $labels = $container.find('input[data-label-include]')
     for (var i = 0; i < $labels.length; i++) {
         var $chk = $($labels[i])
         if ($chk.prop('checked')) {
@@ -1365,7 +1492,7 @@ function printLabels() {
             try {
                 var labelXml = prepareLabelXml(labelData, calData)
                 var printParamsXml = DLF.createLabelWriterPrintParamsXml(printParams)
-                if (!config.print.skipPrinting) {
+                if (!config.skipPrinting) {
                     log('Printing \'' + printParams.jobTitle + '\':', labelData)
                     DLF.printLabel(selectedPrinter.name, printParamsXml, labelXml, null)
                 }
@@ -1380,14 +1507,15 @@ function printLabels() {
         }
     }
     printing = false
-    setUIState()
+    setUIState($container)
 }
 
 /**
  * Prints a sinlge label (from the preview modal)
  * @param {Number} labelNo 
+ * @param {JQuery} $container
  */
-function printSingleLabel(labelNo) {
+function printSingleLabel(labelNo, $container) {
     // Get calibration data
     var calData = selectedPrinter.calData
     /** @type {DYMOLabelFramework_PrintParams} */
@@ -1397,7 +1525,7 @@ function printSingleLabel(labelNo) {
         flowDirection: DLF.FlowDirection.LeftToRight
     }
     if (selectedPrinter.isTwinTurbo) {
-        var left = $('#printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
+        var left = $container.find('#dlem-printer-roll-left-' + selectedPrinter.listIndex).prop('checked')
         printParams.twinTurboRoll = left ? DLF.TwinTurboRoll.Left : DLF.TwinTurboRoll.Right
     }
     var labelData = config.print.labels[labelNo]
@@ -1405,7 +1533,7 @@ function printSingleLabel(labelNo) {
     try {
         var labelXml = prepareLabelXml(labelData, calData)
         var printParamsXml = DLF.createLabelWriterPrintParamsXml(printParams)
-        if (!config.print.skipPrinting) {
+        if (!config.skipPrinting) {
             log('Printing \'' + printParams.jobTitle + '\':', labelData)
             DLF.printLabel(selectedPrinter.name, printParamsXml, labelXml, null)
         }
@@ -1417,8 +1545,8 @@ function printSingleLabel(labelNo) {
         logError(err)
     }
     // Uncheck in list
-    $('input[data-label-include="' + labelNo + '"]').prop('checked', false)
-    setUIState()
+    $container.find('input[data-label-include="' + labelNo + '"]').prop('checked', false)
+    setUIState($container)
 }
 
 
@@ -1445,7 +1573,7 @@ function previewLabel(labelNo) {
     var png = DLF.renderLabel(labelXml, renderParamsXml, selectedPrinter.name)
     $('img.label-preview').attr('src', 'data:image/png;base64,' + png)
     $('[data-command="print-single"]').attr('data-label', labelNo)
-    $('#modal-preview').modal('show')
+    $('#dlem-modal-preview').modal('show')
 }
 
 /**
@@ -1598,7 +1726,7 @@ function calibrate() {
     // Update values
     $('#offset-dx').val(selectedPrinter.calData.dx)
     $('#offset-dy').val(selectedPrinter.calData.dy)
-    dialog('#modal-calibrate', {}, function($modal, verb) {
+    dialog('#dlem-modal-calibrate', {}, function($modal, verb) {
         return new Promise(function(resolve, reject) {
             if (verb == 'apply') {
                 var dx = Number.parseInt($('#offset-dx').val().toString())

@@ -64,3 +64,8 @@ table.dataTable thead .sorting_desc_disabled{background-image:none !important;}
 .custom-switch label {
     line-height: 1.5rem;
 }
+
+textarea.dlem-actiontag {
+    font-family: monospace;
+    font-size:12px;
+}

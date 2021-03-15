@@ -3,6 +3,7 @@
  * @type {{
  *  DYMOLabelConfig_init?: function(DYMOLabelConfig):void
  *  DYMOLabelPrint_init?: function(DYMOLabelConfig):void
+ *  DYMOLabelWidget_init?: function(DYMOLabelConfig):void
  * }}
  */
 
@@ -17,7 +18,7 @@
  *  print: DYMOLabelPrintData
  *  labels: Object<string, LabelData>
  * widgetEndpoint: string
- * eventId: Number
+ *  eventId: Number
  * }}
  */
 
@@ -42,8 +43,20 @@
  *  toastLabelDeleted: string
  *  actionTagReplace: string
  *  widgetLabel: string
+ *  invalidRange: string
  * }}
  */
+
+/**
+ * @typedef DYMOLabelRange
+ * @type {{
+ *  id: string,
+ *  start: string
+ *  end: string
+ *  type?: 'Numeric' | 'Upper' | 'Lower'
+ * }}
+ */
+
 
 /**
  * @typedef DYMOLabelPrintData
@@ -52,7 +65,7 @@
  *  auto: boolean
  *  labels: DYMOLabelItem[][]
  *  errors: string[]
- *  skipPrinting: boolean
+ *  range?: string
  * }}
  */
 
@@ -62,7 +75,7 @@
  *  name: string
  *  type: string
  *  value: string
- *  png: string
+ *  png?: string
  * }}
  */
 

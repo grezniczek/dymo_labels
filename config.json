@@ -51,7 +51,7 @@
         },
         {
             "key": "system-enable-post",
-            "name": "Enable the global POST endpoint (see docs)",
+            "name": "Allow projects to enable a POST endpoint (see docs)",
             "tt_name": "config_enable_post",
             "type": "checkbox"
         }
@@ -73,6 +73,12 @@
             "key": "allow-public",
             "name": "Allow anonymous access to the public plugin page",
             "tt_name": "config_allow_public",
+            "type": "checkbox"
+        },
+        {
+            "key": "enable-post",
+            "name": "Enable the POST endpoint (see docs)",
+            "tt_name": "config_post",
             "type": "checkbox"
         },
         {

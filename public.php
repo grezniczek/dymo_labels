@@ -177,7 +177,6 @@ class publicEndpoint
             }
         }
 
-        $data["skipPrinting"] = $m->getProjectSetting("skip-printing") == true;
         $autoThreshold = 5;
         $allowAuto = $m->getProjectSetting("allow-autoprint") == true && count($data["labels"]) <= $autoThreshold;
         $data["auto"] = $data["auto"] && $allowAuto;
@@ -206,6 +205,7 @@ class publicEndpoint
             ),
             "labels" => $labels,
             "print" => $data,
+            "skipPrinting" => $m->getProjectSetting("skip-printing") == true,
         );
 ?>
 <!DOCTYPE html>
@@ -229,15 +229,15 @@ class publicEndpoint
 <body>
     <div class="container">
         <h3><?= $fw->tt("module_name") ?> <i class="fas fa-spinner fa-spin initializing"></i></h3>
-        <div id="error" style="color:red"></div>
+        <div data-dlem-error style="color:red"></div>
         <div class="initialized">
             <div class="card border-danger printers-card">
                 <div class="card-header">
                     <?= $fw->tt("pp_printers") ?>
                     <button class="float-right btn btn-xs btn-link" style="padding:0px;" data-command="refresh" data-toggle="tooltip" data-placement="top" title="<?= $fw->tt("pp_refresh") ?>"><i class="fas fa-redo-alt fa-xs"></i></button>
                 </div>
-                <div class="card-body" id="prlist">
-                    <table id="printers" class="printers table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
+                <div class="card-body" data-dlem-prlist>
+                    <table data-dlem-printers class="printers table table-hover table-borderless" style="margin-bottom:0.5rem;margin-top:0.5rem;">
                         <tr class="printer-template">
                             <td class="printer-select">
                                 <input type="radio" name="printer" id="" value="">
@@ -298,7 +298,7 @@ class publicEndpoint
     </script>
 
     <!-- Modal: Preview -->
-    <div class="modal fade" id="modal-preview" tabindex="-1" role="dialog" aria-labelledby="modal-preview-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal fade" id="dlem-modal-preview" tabindex="-1" role="dialog" aria-labelledby="modal-preview-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -321,7 +321,7 @@ class publicEndpoint
     </div>
 
     <!-- Modal: Calibrate -->
-    <div class="modal fade" id="modal-calibrate" tabindex="-1" role="dialog" aria-labelledby="modal-calibrate-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal fade" id="dlem-modal-calibrate" tabindex="-1" role="dialog" aria-labelledby="modal-calibrate-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
