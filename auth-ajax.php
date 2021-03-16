@@ -100,6 +100,37 @@ class ajaxEndpoint {
                         );
                     }
                 break;
+                case "store-calibration":
+                    $payload = json_decode($data["payload"], true);
+                    try {
+                        $m->storeCalibration($payload);
+                        $response = array (
+                            "success" => true,
+                        );
+                    } 
+                    catch (\Throwable $err) {
+                        $response = array (
+                            "success" => false,
+                            "error" => $err->getMessage(),
+                        );
+                    }
+                break;
+                case "get-calibration":
+                    $payload = json_decode($data["payload"], true);
+                    try {
+                        $calData = $m->getCalibration($payload);
+                        $response = array (
+                            "success" => true,
+                            "calData" => $calData
+                        );
+                    } 
+                    catch (\Throwable $err) {
+                        $response = array (
+                            "success" => false,
+                            "error" => $err->getMessage(),
+                        );
+                    }
+                break;
                 default:
                 break;
             }
