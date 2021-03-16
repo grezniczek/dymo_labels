@@ -50,7 +50,7 @@ var DLF = null
  */
 function addNewLabel() {
     clearAddState()
-    dialog('#modal-addNew', function(modal) {
+    dialog('#modal-addNew', function(addDH) {
         checkAddState()
     }, function(addDH, verb) {
         return new Promise(function(resolve, reject) {
@@ -308,15 +308,16 @@ function showInfo(label) {
  * @param {LabelData} label 
  */
 function renameLabel(label) {
-    dialog('#modal-renamelabel', function(modal) {
+    dialog('#modal-renamelabel', function(renameDH) {
         // Setup
-        /** @type {JQuery} */
-        var $modal = modal
-        $modal.find('[data-modal-content="id"]').text(label.id)
+        renameDH.set({
+            id: label.id
+        })
+        var $modal = renameDH.$modal
         $modal.find('[data-input-control="name"]').val(label.name).removeClass('is-invalid').attr('title', '')
         $modal.find('[data-input-control="desc"]').val(label.desc)
     }, function(renameDH, verb) {
-        var $modal = renameDH.modal
+        var $modal = renameDH.$modal
         return new Promise(function(resolve, reject) {
             if (verb == 'save') {
                 // Gather data
@@ -380,10 +381,9 @@ function renameLabel(label) {
  */
 function configureLabel(label) {
     log('Configure label: ' + label.id)
-    dialog('#modal-config', function(modal) {
+    dialog('#modal-config', function(configDH) {
         log('Configuring:', label)
-        /** @type {JQuery} */
-        var $modal = modal
+        var $modal = configDH.$modal
         // Clear
         $modal.find('[data-object-name]').remove()
         $modal.find('hr').remove()
@@ -415,15 +415,14 @@ function configureLabel(label) {
             $row.find('textarea').prop('rows', loi.multiline ? 3 : 1)
             $row.find('[data-edit-action]').on('click', function(e) {
                 $modal.fadeTo(200, 0.8)
-                dialog('#modal-editlabelobject', function(edit) {
-                    /** @type {JQuery} */
-                    var $edit = $(edit)
+                dialog('#modal-editlabelobject', function(editDH) {
+                    var $edit = editDH.$modal
                     $edit.find('[data-modal-content=objectname]').text(loi.name)
                     $edit.find('[data-input-control=objectname]').val(loi.name)
                     $edit.find('[data-input-control=objectdesc]').val(loi.desc)
                     $edit.find('[data-input-control=objectname]').removeClass('is-invalid')
                 }, function(editDH, editVerb) {
-                    var $edit = editDH.modal
+                    var $edit = editDH.$modal
                     return new Promise(function(resolve, reject) {
                         if (editVerb == 'edit-labelobject') {
                             var newName = $edit.find('[data-input-control=objectname]').val().toString().trim()
@@ -461,7 +460,7 @@ function configureLabel(label) {
             $modal.find('.dlem-no-labelobjects').show()
         }
     }, function(configDH, verb) {
-        var $modal = configDH.modal
+        var $modal = configDH.$modal
         return new Promise(function(resolve, reject) {
             if (verb == 'save') {
                 // Save configuration - read from modal and replace old config
@@ -621,8 +620,89 @@ function deleteLabel(label) {
  * @param {LabelData} label 
  */
 function printLabel(label) {
-    dialog('#modal-error', { 
-        error: 'Not implemented yet.' 
+    dialog('#modal-print', function(printDH) { 
+        printDH.set({
+            id: label.id,
+            name: label.name,
+            desc: label.desc
+        })
+        var $modal = printDH.$modal
+        // Cleanup
+        $modal.find('[data-item-remove]').remove()
+        $modal.find('[data-item-template]').hide()
+        // Construct dialog
+        var index = 0
+        Object.keys(label.config.objects).forEach(function(key) {
+            var loi = label.config.objects[key]
+            if (loi.transform == 'R') return // Skip removed items
+            index++
+            var $item = $modal.find('[data-item-template]').clone(false)
+            $item.removeAttr('data-item-template').appendTo($modal.find('[data-label-objects]')).attr('data-item-remove', index).show()
+            $item.find('[data-labelobject-name]').text(loi.name).attr('for', 'print-item-' + index)
+            $item.find('[data-labelobject-type]').hide()
+            $item.find('[data-labelobject-type="' + loi.type + '"]').show()
+            $item.find('[data-input-control]').val(loi.default).attr('data-input-control', loi.name).attr('id', 'print-item-' + index).prop('rows', loi.multiline ? 3 : 1).prop('disabled', loi.readOnly)
+            $item.find('[data-labelobject-transform]').text(config.strings['transform' + loi.transform])
+        })
+    }, function(printDH, verb) {
+        return new Promise(function(resolve, reject) {
+            if (verb == 'setup-print') {
+                log('Setting up label', label)
+                // Prepare print data
+                var print = {
+                    template: label.id,
+                    errors: [],
+                    range: printDH.$modal.find('[data-print-range]').val().toString(),
+                    auto: false,
+                    labels: [],
+                }
+                // Gather data
+                var labelTpl = []
+                Object.keys(label.config.objects).forEach(function(key) {
+                    var loi = label.config.objects[key]
+                    var labelItem = {
+                        name: key,
+                        type: loi.transform,
+                        value: loi.default
+                    }
+                    if (loi.transform == 'R') {
+                        labelItem.value = ''
+                    }
+                    else if (!loi.readOnly) {
+                        var val = printDH.$modal.find('[data-input-control="' + key + '"]').val().toString()
+                        if (val.length == 0 && !loi.allowEmpty) {
+                            val = loi.default
+                        }
+                        labelItem.value = val
+                    }
+                    labelTpl.push(labelItem)
+                })
+                var expanded = expandRange(print.range, labelTpl)
+                expanded.errors.forEach(function(error) {
+                    print.errors.push(error)
+                })
+                print.labels = expanded.labels
+                // Show print dialog
+                var z = printDH.$modal.css('z-index')
+                printDH.$modal.css('z-index', 0)
+                dialog('#dlem-widget-modal-print', function(widgetDH) {
+                    widgetDH.set({
+                        name: label.name,
+                        desc: label.desc,
+                    })
+                    config.print = print
+                    initPrinting(widgetDH.$modal)
+                })
+                .then(function() {
+                    printDH.enable(true, true)
+                    printDH.$modal.css('z-index', z)
+                })
+                log('Print', print)
+            }
+            else {
+                resolve(verb)
+            }
+        })
     })
 }
 
@@ -685,7 +765,7 @@ function log() {
 /**
  * 
  * @param {string} selector 
- * @param {object | function(JQuery):void } contentOrSetup 
+ * @param {Object<string, string> | function(DialogHelper):void} contentOrSetup 
  * @param {function(DialogHelper, string):Promise} action 
  */
 function dialog(selector, contentOrSetup = null, action = null) {
@@ -723,6 +803,16 @@ function dialog(selector, contentOrSetup = null, action = null) {
             hide()
             reject(err)
         }
+        var setContent = function(content) {
+            $modal.find('[data-modal-content]').each(function(index, element) {
+                var item = element.getAttribute('data-modal-content')
+                element.innerText = content[item]
+            })
+            $modal.find('[data-modal-content-html]').each(function(index, element) {
+                var item = element.getAttribute('data-modal-content-html')
+                element.innerHTML = content[item]
+            })
+        }
         /** @type {JQuery.EventHandlerBase<HTMLElement, JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>>} */
         var clickHandler = function(e) {
             var $btn = e.target.hasAttribute('data-modal-action') ? 
@@ -734,7 +824,7 @@ function dialog(selector, contentOrSetup = null, action = null) {
                         // Disable all buttons and set spinner
                         enable(false, true)
                         // Perform action
-                        action({ modal: $modal, enable: enable }, verb)
+                        action({ $modal: $modal, set: setContent, enable: enable }, verb)
                         .then(function(result) {
                             done(result)
                         })
@@ -754,17 +844,10 @@ function dialog(selector, contentOrSetup = null, action = null) {
         enable(true, true)
         $modal.on('click', clickHandler)
         if (typeof contentOrSetup == 'function') {
-            contentOrSetup($modal)
+            contentOrSetup({ $modal: $modal, set: setContent, enable: enable })
         }
         else if (typeof contentOrSetup == 'object') {
-            $modal.find('[data-modal-content]').each(function(index, element) {
-                var item = element.getAttribute('data-modal-content')
-                element.innerText = contentOrSetup[item]
-            })
-            $modal.find('[data-modal-content-html]').each(function(index, element) {
-                var item = element.getAttribute('data-modal-content-html')
-                element.innerHTML = contentOrSetup[item]
-            })
+            setContent(contentOrSetup)
         }
         $modal.modal('show')
     })
@@ -860,6 +943,7 @@ EM.DYMOLabelConfig_init = function(data) {
         data: getTableData()
     })
 
+    setupPrintEvents($('.dlem-widget-modal'))
 
     // Setup some usability enhancements.
     // @ts-ignore
@@ -870,7 +954,7 @@ EM.DYMOLabelConfig_init = function(data) {
 EM.DYMOLabelWidget_init = function(data) {
     config = data
     log('Initializing widgets...', data)
-    setupPrintEvents($('.dlem-modal'))
+    setupPrintEvents($('.dlem-widget-modal'))
 
     $('[data-dlem-print-widget]').each(function() {
         var $widget = $(this)
@@ -932,78 +1016,101 @@ EM.DYMOLabelWidget_init = function(data) {
                 })
 
                 // Expand ranges
-                /** @type {DYMOLabelRange[]} */
-                var ranges = []
-                var rangeRegex = new RegExp('([A-Z0-9]+):([A-Z]|[a-z]|[0-9]+)-([A-Z]|[a-z]|[0-9]+)', 'i')
-                var alphaMaps = {
-                    'Upper': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                    'Lower': 'abcdefghijklmnopqrstuvwxyz',
-                    'Numeric': ''
-                }
-                print.range.split(',').forEach(function(rpart) {
-                    var m = rangeRegex.exec(rpart)
-                    if (m) {
-                        /** @type {DYMOLabelRange} */
-                        var range = {
-                            id: m[1],
-                            start: m[2],
-                            end: m[3],
-                        }
-                        if ((alphaMaps.Upper.includes(range.start) && alphaMaps.Upper.includes(range.end))) {
-                            range.type = 'Upper'
-                            ranges.push(range)
-                        } 
-                        else if (alphaMaps.Lower.includes(range.start) && alphaMaps.Lower.includes(range.end)) {
-                            range.type = 'Lower'
-                            ranges.push(range)
-                        }
-                        else if (!alphaMaps.Upper.includes(range.start.toUpperCase()) && !alphaMaps.Upper.includes(range.end.toUpperCase())) {
-                            range.type = 'Numeric'
-                            ranges.push(range)
-                        }
-                        else {
-                            print.errors.push(config.strings.invalidRange + rpart)
-                        }
-                    }
+                var expanded = expandRange(print.range, labelTpl)
+                expanded.errors.forEach(function(error) {
+                    print.errors.push(error)
                 })
-                /** @type {DYMOLabelItem[][]} */
-                var labels = []
-                labels.push(labelTpl)
-                ranges.forEach(function(range) {
-                    var alphaMap = alphaMaps[range.type]
-                    var start = range.type == 'Numeric' ? Number.parseInt(range.start) : alphaMap.search(range.start)
-                    var end = range.type == 'Numeric' ? Number.parseInt(range.end) : alphaMap.search(range.end)
-                    var delta = start > end ? -1 : 1
-                    // Copy over existing labels and initalize array to hold the new ones
-                    var unexpanded = labels
-                    labels = []
-                    var i = start
-                    while (i != end + delta) {
-                        var replaceWith = range.type == 'Numeric' ? i.toString() : alphaMap.substring(i, 1)
-                        var search = '{' + range.id + '}'
-                        unexpanded.forEach(function(uxLabel) {
-                            var label = createLabel(labelTpl, search, replaceWith)
-                            labels.push(label)
-                        })
-                        i = i + delta
-                    }
-                })
-                print.labels = labels
-                dialog('#dlem-widget-modal-print', function(modal) {
-                    /** @type {JQuery} */
-                    var $modal = modal
-                    $modal.find('[data-modal-content="name"]').text(config.labels[id].name)
-                    $modal.find('[data-modal-content="desc"]').text(config.labels[id].desc)
-                    config.print = print
-                    initPrinting($modal)
-                })
+                print.labels = expanded.labels
 
+                dialog('#dlem-widget-modal-print', function(printDH) {
+                    printDH.set({
+                        name: config.labels[id].name,
+                        desc: config.labels[id].desc,
+                    })
+                    config.print = print
+                    initPrinting(printDH.$modal)
+                })
                 log('Print', print)
                 return false
             })
         }
     })
 }
+
+/**
+ * 
+ * @param {string} rangeDef 
+ * @param {DYMOLabelItem[]} labelTpl
+ * @returns {DYMOLabelRangeExpansionResult}
+ */
+function expandRange(rangeDef, labelTpl) {
+    /** @type {DYMOLabelRange[]} */
+    var ranges = []
+    var rangeRegex = new RegExp('([A-Z0-9]+):([A-Z]|[a-z]|[0-9]+)-([A-Z]|[a-z]|[0-9]+)', 'i')
+    var alphaMaps = {
+        'Upper': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'Lower': 'abcdefghijklmnopqrstuvwxyz',
+        'Numeric': ''
+    }
+    /** @type {DYMOLabelRangeExpansionResult} */
+    var rv = {
+        range: rangeDef,
+        labels: [],
+        errors: []
+    } 
+    rangeDef.split(',').forEach(function(rpart) {
+        var m = rangeRegex.exec(rpart)
+        if (m) {
+            /** @type {DYMOLabelRange} */
+            var range = {
+                id: m[1],
+                start: m[2],
+                end: m[3],
+            }
+            if ((alphaMaps.Upper.includes(range.start) && alphaMaps.Upper.includes(range.end))) {
+                range.type = 'Upper'
+                ranges.push(range)
+            } 
+            else if (alphaMaps.Lower.includes(range.start) && alphaMaps.Lower.includes(range.end)) {
+                range.type = 'Lower'
+                ranges.push(range)
+            }
+            else if (!alphaMaps.Upper.includes(range.start.toUpperCase()) && !alphaMaps.Upper.includes(range.end.toUpperCase())) {
+                range.type = 'Numeric'
+                ranges.push(range)
+            }
+            else {
+                rv.errors.push(config.strings.invalidRange + rpart)
+            }
+        }
+    })
+    /** @type {DYMOLabelItem[][]} */
+    var labels = []
+    labels.push(labelTpl)
+    ranges.forEach(function(range) {
+        var alphaMap = alphaMaps[range.type]
+        var start = range.type == 'Numeric' ? Number.parseInt(range.start) : alphaMap.search(range.start)
+        var end = range.type == 'Numeric' ? Number.parseInt(range.end) : alphaMap.search(range.end)
+        var delta = start > end ? -1 : 1
+        // Copy over existing labels and initalize array to hold the new ones
+        var unexpanded = labels
+        labels = []
+        var i = start
+        var stop = end + delta
+        while (i != stop) {
+            var replaceWith = range.type == 'Numeric' ? i.toString() : alphaMap.substring(i, i + 1)
+            var search = '{' + range.id + '}'
+            unexpanded.forEach(function(uxLabel) {
+                var label = createLabel(uxLabel, search, replaceWith)
+                labels.push(label)
+            })
+            i = i + delta
+        }
+    })
+    rv.labels = labels
+    return rv
+}
+
 
 /**
  * 
@@ -1732,7 +1839,7 @@ function getPrinterCalibration() {
             resolve()
         })
         .catch(function(err) {
-            log('Failed to get calibration data: ' + err)
+            logError('Failed to get calibration data: ' + err)
             for (var i = 0; i < printers.length; i++) {
                 printers[i].calData = { dx: 0, dy: 0 }
             }

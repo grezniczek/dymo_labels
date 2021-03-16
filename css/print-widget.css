@@ -1,52 +1,52 @@
 /* DYMO Labels External Module - Widget CSS */
 
-.dlem-modal .initialized {
+.dlem-widget-modal .initialized {
     display: none;
 }
 
-.dlem-modal .card-header {
+.dlem-widget-modal .card-header {
     padding: 0.25rem 0.75rem;
 }
-.dlem-modal .card-body {
+.dlem-widget-modal .card-body {
     padding: 0;
 }
-.dlem-modal tr.printer-template {
+.dlem-widget-modal tr.printer-template {
     display:none;
 }
 
-.dlem-modal .labels td,
-.dlem-modal .printers td {
+.dlem-widget-modal .labels td,
+.dlem-widget-modal .printers td {
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
 }
-.dlem-modal .printers label {
+.dlem-widget-modal .printers label {
     margin: 0;
 }
-.dlem-modal td.printer-info {
+.dlem-widget-modal td.printer-info {
     padding-left: 0;
 }
-.dlem-modal .printer-name {
+.dlem-widget-modal .printer-name {
     font-weight: bold;
 }
-.dlem-modal .printer-offline {
+.dlem-widget-modal .printer-offline {
     text-transform: uppercase;
     font-size: 0.8em;
     font-weight: bold;
     color: red;
 }
-.dlem-modal td.printer-select {
+.dlem-widget-modal td.printer-select {
     padding-left: 1.25rem;
     width: 2rem;
 }
-.dlem-modal td.printer-status {
+.dlem-widget-modal td.printer-status {
     text-align: right;
     padding-right: 1.25rem;
 }
-.dlem-modal .twinturbo {
+.dlem-widget-modal .twinturbo {
     margin-left: 1rem;
 }
 
-.dlem-modal [data-dlem-error] {
+.dlem-widget-modal [data-dlem-error] {
     color: red;
     border: 2px solid red;
     padding: 1rem;
@@ -54,39 +54,39 @@
     margin-bottom: 1rem;
     border-radius: 0.25rem;
 }
-.dlem-modal [data-dlem-error]:empty {
+.dlem-widget-modal [data-dlem-error]:empty {
     display: none;
 }
-.dlem-modal [data-dlem-error] p {
+.dlem-widget-modal [data-dlem-error] p {
     margin-bottom: 0.5rem;
 }
 
-.dlem-modal .dlem-copy {
+.dlem-widget-modal .dlem-copy {
     margin-top:1em;
     font-size: 12px;
     color: gray;
 }
 
-.dlem-modal .labels-card div.card-body {
+.dlem-widget-modal .labels-card div.card-body {
     padding: 10px;
     text-align: center;
     overflow: auto;
 }
-.dlem-modal table.labels {
+.dlem-widget-modal table.labels {
     width: auto;
 }
-.dlem-modal table.labels td, table.labels th {
+.dlem-widget-modal table.labels td, table.labels th {
     text-align: center;
     border-collapse: collapse;
     padding: 5px 10px;
     border: 1px solid black;
     vertical-align: middle;
 }
-.dlem-modal td.no-labels {
+.dlem-widget-modal td.no-labels {
     border: none !important;
 }
 
-.dlem-modal pre {
+.dlem-widget-modal pre {
     display: block;
     padding: 0;
     margin: 0;
@@ -99,15 +99,15 @@
     border: none;
 }
 
-.dlem-modal span.removed {
+.dlem-widget-modal span.removed {
     color: red;
     font-size: 90%;
 }
 
-.dlem-modal div.label-preview {
+.dlem-widget-modal div.label-preview {
     text-align: center;
 }
 
-.dlem-modal .align-left {
+.dlem-widget-modal .align-left {
     margin-right: auto;
 }

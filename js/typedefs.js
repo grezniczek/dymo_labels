@@ -44,6 +44,11 @@
  *  actionTagReplace: string
  *  widgetLabel: string
  *  invalidRange: string
+ *  transformT: string
+ *  transformQR: string
+ *  transformDM: string
+ *  transformPNG: string
+ *  transformR: string
  * }}
  */
 
@@ -265,8 +270,18 @@
 /**
  * @typedef DialogHelper
  * @type {{
- *  modal: JQuery<HTMLElement>
+ *  $modal: JQuery<HTMLElement>
+ *  set: function(oject):void
  *  enable: function(boolean?,boolean?):void
+ * }}
+ */
+
+/**
+ * @typedef DYMOLabelRangeExpansionResult
+ * @type {{
+ *  errors: string[]
+ *  range: string
+ *  labels: DYMOLabelItem[][]
  * }}
  */
 
