@@ -278,6 +278,7 @@ function showInfo(label) {
                 linkInfo += '=' + config.strings.infoValue
             }
         })
+        linkInfo += '&range=COPIES:1-1'
     }
     dialog('#modal-info', function(infoDH) {
         infoDH.set({
@@ -1179,7 +1180,9 @@ EM.DYMOLabelPrint_init = function(data) {
     log('Print page initializing:', config)
 
     setupPrintEvents($('body'))
-    initPrinting($('body'))
+    setTimeout(() => {
+        initPrinting($('body'))
+    }, 10);
 }
 
 /**
@@ -1229,15 +1232,15 @@ function initPrinting($container) {
     $container.find('tbody.labels-body tr.label').remove()
 
     setTimeout(function() {
-    
+        
+        setupLabels($container)
+
         if (dlfStatus.isBrowserSupported && 
             dlfStatus.isFrameworkInstalled && 
             dlfStatus.isWebServicePresent) {
-            
+
             setupPrinters($container, false)
             .then(function() {
-                setupLabels($container)
-                setUIState($container)
                 $container.find('.initialized').show(200)
                 $container.find('.initializing').hide()
                 if (config.print.auto && selectedPrinter) {
@@ -1249,11 +1252,11 @@ function initPrinting($container) {
             })
         }
         else {
-            setUIState($container)
             $container.find('[data-dlem-error]').html(dlfStatus.errorDetails)
             $container.find('.initializing').hide()
             $container.find('.initialized').show(200)
         }
+        setUIState($container)
     }, 100);
 }
 
