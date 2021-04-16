@@ -229,7 +229,7 @@ class publicEndpoint
 <body>
     <div class="container">
         <h3><?= $fw->tt("module_name") ?> <i class="fas fa-spinner fa-spin initializing"></i></h3>
-        <div data-dlem-error style="color:red"></div>
+        <div data-dlem-error></div>
         <div class="initialized">
             <div class="card border-danger printers-card">
                 <div class="card-header">

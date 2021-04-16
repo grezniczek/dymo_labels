@@ -76,6 +76,7 @@
                         </div>
                     </div>
                 </div>
+                <div class="mt-3" data-dlem-error></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-link btn-sm align-left initialized" data-command="calibrate"><?= $fw->tt("pp_calibrate") ?></button>

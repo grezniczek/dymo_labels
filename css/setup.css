@@ -54,6 +54,10 @@ select[name=dlem-labels_length] {
     margin-right: auto;
 }
 
+/* Datatable */
+table.dataTable {
+    min-width: 650px;
+}
 table.dataTable thead .sorting{background-image:none !important;}
 table.dataTable thead .sorting_asc{background-image:none !important;}
 table.dataTable thead .sorting_desc{background-image:none !important;}

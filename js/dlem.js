@@ -41,6 +41,9 @@ var printing = false
 /** @type {DYMOLabelFramework} */
 var DLF = null
 
+/** @type {boolean} Keeps track whether the DYMO Label Framework has been initialized yet */
+var DLF_initialized = false;
+
 //#endregion
 
 //#region Add a label
@@ -712,7 +715,10 @@ function printLabel(label) {
                         desc: label.desc,
                     })
                     config.print = print
-                    initPrinting(widgetDH.$modal)
+                    printDH.enable(false, true)
+                    setTimeout(() => {
+                        initPrinting(widgetDH.$modal)
+                    }, 10);
                 })
                 .then(function() {
                     printDH.enable(true, true)
@@ -926,6 +932,7 @@ EM.DYMOLabelConfig_init = function(data) {
     // @ts-ignore
     DLF = dymo.label.framework
     DLF.init()
+    DLF_initialized = true
 
     checkAddState()
     $('#dlem-labelfile').on('change', function() {
@@ -992,8 +999,11 @@ EM.DYMOLabelWidget_init = function(data) {
         var $target = target == '' ? $('tr[sq_id="' + field + '"] td.labelrc') : $(target)
         if ($target.length) {
             $target.append($widget)
-            $widget.find('button').on('click', function(e) {
+            var $btn = $widget.find('button')
+            $btn.on('click', function(e) {
                 e.preventDefault()
+                $btn.prop('disabled', true)
+                $btn.find('.when-disabled').prop('hidden', false)
                 $widget.find('.piping_receiver').each(function() {
                     var span = this
                     span.classList.forEach(function(className) {
@@ -1054,7 +1064,12 @@ EM.DYMOLabelWidget_init = function(data) {
                         desc: config.labels[id].desc,
                     })
                     config.print = print
-                    initPrinting(printDH.$modal)
+                    setTimeout(() => {
+                        initPrinting(printDH.$modal)
+                    }, 10);
+                }).then(function() {
+                    $btn.find('.when-disabled').prop('hidden', true)
+                    $btn.prop('disabled', false)
                 })
                 log('Print', print)
                 return false
@@ -1199,8 +1214,9 @@ var dlfStatus = null
 function initPrinting($container) {
     // @ts-ignore
     DLF = dymo.label.framework
-    if (printers.length == 0) {
+    if (!DLF_initialized) {
         DLF.init()
+        DLF_initialized = true
     }
     if (dlfStatus == null) {
         dlfStatus = DLF.checkEnvironment()
@@ -1233,8 +1249,10 @@ function initPrinting($container) {
             })
         }
         else {
+            setUIState($container)
             $container.find('[data-dlem-error]').html(dlfStatus.errorDetails)
             $container.find('.initializing').hide()
+            $container.find('.initialized').show(200)
         }
     }, 100);
 }

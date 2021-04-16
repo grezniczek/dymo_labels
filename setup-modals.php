@@ -460,7 +460,7 @@
                 <button
                     type="button"
                     class="btn btn-primary btn-sm"
-                    data-modal-action="setup-print"><?= $fw->tt("pp_printsingle") ?></button>
+                    data-modal-action="setup-print"><?= $fw->tt("pp_printsingle") ?><span class="when-disabled"> <i class="fas fa-spinner fa-spin"></i></span></button>
             </div>
         </div>
     </div>

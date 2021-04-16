@@ -82,7 +82,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                             $range = \Piping::replaceVariablesInLabel($range, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
                         }
                         $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-label=\"{$id}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\" data-dlem-eventid=\"{$event_id}\"{$auto}>";
-                        $html .= "<button class=\"btn btn-primary btn-sm{$button_class}\" style=\"{$button_style}\">{$button_label}</button>";
+                        $html .= "<button class=\"btn btn-primary btn-sm{$button_class}\" style=\"{$button_style}\">{$button_label}<span class=\"when-disabled\" hidden> <i class=\"fas fa-spinner fa-spin\"></i></span></button>";
                         $html .= "<span style=\"display:none;\">";
                         $html .= "<span data-dlem-range>{$range}</span>";
                         foreach($label["config"]["objects"] as $loi) {
