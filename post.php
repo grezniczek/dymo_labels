@@ -68,6 +68,11 @@ class postEndpoint {
 
         // TODO - do actually something
 
+        header("HTTP/1.1 501 Not Implemented");
+        print $doc_start;
+        print "<p>POST functionality has not been implemented yet. Please check back later.</p>";
+        print $doc_end;
+        exit;
 
     }
 }
