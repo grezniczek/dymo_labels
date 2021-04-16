@@ -26,7 +26,7 @@
                     </div>
                     <div class="dlem-description" id="dlem-name-desc"><?= $fw->tt("setup_hint_labelname") ?></div>
                     <div class="dlem-field">
-                        <input type="text" data-input-control="name" class="form-control" aria-describedby="dlem-name-desc" id="dlem-name" name="name" required />
+                        <input type="text" data-input-control="name" class="form-control form-control-sm" aria-describedby="dlem-name-desc" id="dlem-name" name="name" required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -35,15 +35,15 @@
                     </div>
                     <div class="dlem-description" id="dlem-desc-desc"><?= $fw->tt("setup_hint_labeldesc") ?></div>
                     <div class="dlem-field">
-                        <textarea rows="1" data-input-control="desc" class="form-control autosize" aria-describedby="dlem-desc-desc" id="dlem-desc" name="desc"></textarea>
+                        <textarea rows="1" data-input-control="desc" class="form-control form-control-sm autosize" aria-describedby="dlem-desc-desc" id="dlem-desc" name="desc"></textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="dlem-label">
-                        <label for="dlem-file">DYMO Label File</label>
+                        <label for="dlem-file"><?= $fw->tt("setup_labelfile") ?>DYMO Label File</label>
                     </div>
                     <div class="dlem-description" id="dlem-file-desc">
-                        The DYMO Label file that is used as a template for the labels.
+                        <?= $fw->tt("setup_hint_labelfile") ?>
                     </div>
                     <div class="dlem-field">
                         <div class="custom-file">
@@ -284,7 +284,7 @@
                     </div>
                     <div class="dlem-description" id="dlem-elo-name-desc"><?= $fw->tt("setup_hint_labelobjectname") ?></div>
                     <div class="dlem-field">
-                        <input pattern="[A-Za-z0-9]" type="text" data-input-control="objectname" class="form-control" aria-describedby="dlem-elo-name-desc" id="dlem-elo-name" name="name" required />
+                        <input pattern="[A-Za-z0-9]" type="text" data-input-control="objectname" class="form-control form-control-sm" aria-describedby="dlem-elo-name-desc" id="dlem-elo-name" name="name" required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -293,7 +293,7 @@
                     </div>
                     <div class="dlem-description" id="dlem-elo-desc-desc"><?= $fw->tt("setup_hint_labelobjectdesc") ?></div>
                     <div class="dlem-field">
-                        <textarea rows="1" data-input-control="objectdesc" class="form-control autosize" aria-describedby="dlem-elo-desc-desc" id="dlem-elo-desc" name="desc"></textarea>
+                        <textarea rows="1" data-input-control="objectdesc" class="form-control form-control-sm autosize" aria-describedby="dlem-elo-desc-desc" id="dlem-elo-desc" name="desc"></textarea>
                     </div>
                 </div>
             </div>
@@ -336,7 +336,7 @@
                     </div>
                     <div class="dlem-description" id="dlem-rl-name-desc"><?= $fw->tt("setup_hint_labelname") ?></div>
                     <div class="dlem-field">
-                        <input pattern="[A-Za-z0-9]" type="text" data-input-control="name" class="form-control" aria-describedby="dlem-rl-name-desc" id="dlem-rl-name" name="name" required />
+                        <input pattern="[A-Za-z0-9]" type="text" data-input-control="name" class="form-control form-control-sm" aria-describedby="dlem-rl-name-desc" id="dlem-rl-name" name="name" required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -345,7 +345,7 @@
                     </div>
                     <div class="dlem-description" id="dlem-rl-desc-desc"><?= $fw->tt("setup_hint_labeldesc") ?></div>
                     <div class="dlem-field">
-                        <textarea rows="1" data-input-control="desc" class="form-control autosize" aria-describedby="dlem-rl-desc-desc" id="dlem-rl-desc" name="desc"></textarea>
+                        <textarea rows="1" data-input-control="desc" class="form-control form-control-sm autosize" aria-describedby="dlem-rl-desc-desc" id="dlem-rl-desc" name="desc"></textarea>
                     </div>
                 </div>
             </div>
@@ -373,7 +373,7 @@
     data-backdrop="static"
     data-keyboard="false"
 >
-    <div class="modal-dialog modal-md modal-dialog-scrollable modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title dlem-info-title" id="modal-info-title">
@@ -388,16 +388,25 @@
             </div>
             <div class="modal-body">
                 <p><?= $fw->tt("setup_info_text") ?></p>
-                <textarea class="form-control dlem-actiontag" rows="10" data-modal-content-html="tag"></textarea>
                 <p><?= $fw->tt("setup_info_hinttarget") ?></p>
                 <p><?= $fw->tt("setup_info_hintvalue") ?></p>
+                <textarea class="form-control dlem-actiontag" rows="12" data-modal-content-html="tag"></textarea>
+                <div class="d-none" data-public-endpoint-active>
+                    <p class="mt-3"><b><?= $fw->tt("setup_info_publictitle") ?></b></p>
+                    <p><?= $fw->tt("setup_info_publictext") ?></p>
+                    <input class="form-control form-control-sm dlem-link" type="text" data-modal-value="link">
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="dlem-label-id align-left" data-modal-content="id"></div>
                 <button
                     type="button"
+                    class="btn btn-success btn-sm d-none" data-public-endpoint-active
+                    data-modal-action="copy-link"><i class="fas fa-copy"></i> <?= $fw->tt("setup_info_copylink") ?></button>
+                <button
+                    type="button"
                     class="btn btn-success btn-sm"
-                    data-modal-action="copy"><i class="fas fa-copy"></i></button>
+                    data-modal-action="copy-tag"><i class="fas fa-copy"></i> <?= $fw->tt("setup_info_copytag") ?></button>
                 <button
                     type="button"
                     class="btn btn-secondary btn-sm"

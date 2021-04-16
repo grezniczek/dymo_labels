@@ -19,6 +19,7 @@
  *  labels: Object<string, LabelData>
  * widgetEndpoint: string
  *  eventId: Number
+ *  linkBase: string
  * }}
  */
 
@@ -26,6 +27,7 @@
 /**
  * @typedef DYMOLabelStrings
  * @type {{
+ *  dataTablesLanguageJSON: string
  *  chooseFile: string
  *  nameRequired: string
  *  actionInfo: string
@@ -49,6 +51,10 @@
  *  transformDM: string
  *  transformPNG: string
  *  transformR: string
+ *  clipboardError: string
+ *  infoCopiedTag: string
+ *  infoCopiedLink: string
+ *  infoValue: string
  * }}
  */
 

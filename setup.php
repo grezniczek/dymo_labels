@@ -44,6 +44,9 @@ class setupPluginPage {
         );
 
         $labels = $m->getLabels();
+        
+        $dataTables_json = dirname(__FILE__) . "/" . $fw->tt("setup_datatables");
+        $dataTables_json = file_exists($dataTables_json) ? file_get_contents($dataTables_json) : "";
 
         // Prepare configuration data
         $configSettings = array(
@@ -71,8 +74,14 @@ class setupPluginPage {
                 "transformQR" => "QR Code",
                 "transformPNG" => "PNG",
                 "invalidRange" => $fw->tt("error_invalidrange"),
+                "clipboardError" => $fw->tt("error_clipboard"),
+                "infoCopiedTag" => $fw->tt("setup_info_copiedtag"),
+                "infoCopiedLink" => $fw->tt("setup_info_copiedlink"),
+                "infoValue" => $fw->tt("setup_info_publicvalue"),
+                "dataTablesLanguageJSON" => $dataTables_json, 
             ),
             "labels" => $labels,
+            "linkBase" => $m->getUrl("public.php", true),
         );
 
         // Include mostly HTML

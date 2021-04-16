@@ -246,6 +246,7 @@ function fileChanged() {
  * @param {LabelData} label 
  */
 function showInfo(label) {
+    // Construct action tag template
     var tagInfo = '@DYMO-LABEL={'
     tagInfo += '\n  "id": "' + label.id + '",'
     tagInfo += '\n  "button": "' + config.strings.widgetLabel + '",'
@@ -263,32 +264,52 @@ function showInfo(label) {
     }
     tagInfo += '\n  }'
     tagInfo += '\n}'
-    dialog('#modal-info', { 
-        id: label.id,
-        name: label.name,
-        desc: label.desc,
-        tag: tagInfo,
+    // Construct link template
+    var linkInfo = ''
+    if (label.config.public) {
+        linkInfo = config.linkBase + '&template=' + label.id
+        Object.keys(label.config.objects).forEach(function(key) {
+            var loi = label.config.objects[key]
+            linkInfo += '&' + loi.transform + '_' + loi.name
+            if (loi.transform != 'R') {
+                linkInfo += '=' + config.strings.infoValue
+            }
+        })
+    }
+    dialog('#modal-info', function(infoDH) {
+        infoDH.set({
+            id: label.id,
+            name: label.name,
+            desc: label.desc,
+            tag: tagInfo,
+            link: linkInfo   
+        })
+        // Show GET info only when enabled.
+        if (label.config.public) infoDH.$modal.find('[data-public-endpoint-active]').removeClass('d-none')
     }, function(infoDH, verb) {
         return new Promise(function (resolve, reject) {
-            if (verb == 'copy') {
-                // Copy textarea to clipboard
+            // Copy to clipboard
+            if (verb.substr(0, 5) == 'copy-') {
                 try {
                     /** @type {HTMLInputElement} */ // @ts-ignore
-                    var textarea = infoDH.modal.find('textarea[data-modal-content-html="tag"]')[0]
-                    textarea.focus()
-                    textarea.select()
-                    textarea.setSelectionRange(0,9999999)
+                    var el = verb == 'copy-tag' ?
+                        infoDH.$modal.find('textarea[data-modal-content-html="tag"]')[0] :
+                        infoDH.$modal.find('input[data-modal-value="link"]')[0]
+                    el.focus()
+                    el.select()
+                    el.setSelectionRange(0,9999999)
                     if (document.execCommand('copy')) {
-                        successToast('Action tag template copied to the clipboard.')
+                        successToast(verb == 'copy-tag' ? 
+                            config.strings.infoCopiedTag : config.strings.infoCopiedLink)
                     }
                     else {
                         throw new Error()
                     }
-                    textarea.setSelectionRange(0,0)
+                    el.setSelectionRange(0,0)
                 }
                 catch {
                     dialog('#modal-error', {
-                        error: 'Clipboard is not accessible. Please copy manually.'
+                        error: config.strings.clipboardError
                     })
                 }
                 infoDH.enable(true, true)
@@ -812,6 +833,10 @@ function dialog(selector, contentOrSetup = null, action = null) {
                 var item = element.getAttribute('data-modal-content-html')
                 element.innerHTML = content[item]
             })
+            $modal.find('[data-modal-value]').each(function(index, element) {
+                var item = element.getAttribute('data-modal-value')
+                $(element).val(content[item])
+            })
         }
         /** @type {JQuery.EventHandlerBase<HTMLElement, JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>>} */
         var clickHandler = function(e) {
@@ -940,7 +965,8 @@ EM.DYMOLabelConfig_init = function(data) {
                 handleLabelActions(action, data['id'])
             })
         },
-        data: getTableData()
+        data: getTableData(),
+        language: JSON.parse(config.strings.dataTablesLanguageJSON)
     })
 
     setupPrintEvents($('.dlem-widget-modal'))
