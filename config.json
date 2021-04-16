@@ -44,15 +44,15 @@
     ],
     "system-settings": [
         {
-            "key": "system-allow-public",
-            "name": "Allow anonymous access to public plugin pages",
-            "tt_name": "config_system_allow_public",
+            "key": "system-block-public",
+            "name": "Block anonymous access to public plugin pages",
+            "tt_name": "config_block_public",
             "type": "checkbox"
         },
         {
-            "key": "system-enable-post",
-            "name": "Allow projects to enable a POST endpoint (see docs)",
-            "tt_name": "config_enable_post",
+            "key": "system-disable-post",
+            "name": "Disable POST endpoints (see docs)",
+            "tt_name": "config_disable_post",
             "type": "checkbox"
         }
     ],

@@ -30,7 +30,7 @@
     </table>
 </div>
 <?php 
-    if ($m->getProjectSetting("enable-post") == true && $m->getSystemSetting("system-enable-post") == true): 
+    if ($m->getProjectSetting("enable-post") == true && !($m->getSystemSetting("system-disable-post") == true)): 
 ?>
 <p>
     <?= $fw->tt("setup_post") ?> <a href="javascript:$('.dlem-post-info').toggle();"><i class="far fa-question-circle"></i></a>

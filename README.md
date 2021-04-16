@@ -1,19 +1,41 @@
 # DYMO Labels
 
-An external module that provides action tags and plugin pages to enable printing of labels using DYMO LabelWriter printers.
+A REDCap external module that provides action tags and plugin pages to enable printing of labels on DYMO LabelWriter printers.
 
 ## Requirements
 
-- REDCAP 9.5.0 or newer (tested with REDCap 9.7.2).
+- REDCAP 10.0.1 or newer (tested with REDCap 10.9.3).
 
 ## Installation
 
-- Clone this repo into `<redcap-root>/modules/dymo_labels_v<version-number>`.
-- Go to _Control Center > Technical / Developer Tools > External Modules_ and enable DYMO Labels.
+- Automatic:
+  - Find this module in the REDCap External Modules Repository and click the download button.
+
+- Manual:
+  - Clone this repo into `<redcap-root>/modules/dymo_labels_v<version-number>`.
+  - Go to _Control Center > Technical / Developer Tools > External Modules_ and enable DYMO Labels.
 
 ## Configuration
 
-Via "DYMO Labels" link in the left-side menu.
+Module behavior is controlled via External Module settings and labels are set up and managed on the **DYMO Labels** plugin page.
+
+### System-level settingss
+
+- _Block anonymous access to public plugin pages_ - When enabled, access to the plugin page that allows printing of labels set to be accessible in this manner on the  DYMO Labels setup page (see below) is blocked.
+- _Disable POST endpoints (see docs)_ - When enabled, all access to the POST endpoint is blocked. More information about the POST endpoint can be found at the end of this README.
+
+### Project-level settings
+
+- _Output debug information to the browser console_ - When enabled, information useful for troubleshooting is output to the browser console. This option should be disabled in production projects.
+- _Simulate printing (i.e. do not actually print)_ - When enabled, no data is sent to the printer. This is useful for setting up / testing labels.
+- _Allow anonymous access to the plugin page_ - When enabled, individual labels can be made accessible via a public GET endpoint. See the in-page documentation on the DYMO Labels plugin page for more information.
+- _Enable the POST endpoint (see docs)_ - Enables the POST endpoint. More information about the POST endpoint can be found at the end of this README.
+- _Show the plugin-page link_ - When enabled, the **DYMO Labels** link is shown in the _External Modules_ section of the project main menu.
+- _Allow users to download label files_ - When enabled, users with access to the DYMO Labels setup page can download label files.
+- _Allow the auto print flag for public labels_ - When enabled, automatic printing can be used with the public GET endpoint.
+
+### DYMO Labels plugin page
+
 
 - Add
 - Remove

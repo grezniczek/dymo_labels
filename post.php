@@ -30,7 +30,7 @@ class postEndpoint {
 </html>';
 
         // Check whether anonymous access is allowed.
-        if ($pid == null || !$fw->getProjectSetting("enable-post") || !$fw->getSystemSetting("system-enable-post")) {
+        if ($pid == null || $fw->getSystemSetting("system-disable-post") || !$fw->getProjectSetting("enable-post")) {
             // It's not.
             header("HTTP/1.1 403 Forbidden");
             exit;

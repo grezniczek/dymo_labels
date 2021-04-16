@@ -21,9 +21,9 @@ class publicEndpoint
         $pid = $fw->getProjectId();
 
         // Check whether access is allowed - must be in project context and public 
-        if (!($pid !== null
-            && $fw->getSystemSetting("system-allow-public")
-            && $fw->getProjectSetting("allow-public"))) {
+        if ($fw->getSystemSetting("system-block-public") == true || 
+            $pid == null || 
+            $fw->getProjectSetting("allow-public") !== true) {
             // It's not.
             header("HTTP/1.1 403 Forbidden");
             exit;

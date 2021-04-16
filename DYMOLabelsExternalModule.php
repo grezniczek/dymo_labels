@@ -32,11 +32,11 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         // Set default configuration.
         if ($project_id == null) {
             // System.
-            if ($fw->getSystemSetting("system-allow-public") == null) {
-                $fw->setSystemSetting("system-allow-public", false);
+            if ($fw->getSystemSetting("system-block-public") == null) {
+                $fw->setSystemSetting("system-block-public", false);
             }
-            if ($fw->getSystemSetting("system-enable-post") == null) {
-                $fw->setSystemSetting("system-enable-post", false);
+            if ($fw->getSystemSetting("system-disable-post") == null) {
+                $fw->setSystemSetting("system-disable-post", true);
             }
         }
         else {
