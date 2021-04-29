@@ -1,8 +1,8 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
-use DE\RUB\REDCapEMLib\Crypto;
-use Exception;
 use Throwable;
+
+require_once ("classes/Crypto.php");
 
 /**
  * This is the AJAX endpoint for all authenticated module operations
@@ -31,7 +31,6 @@ class ajaxEndpoint {
             "error" => "Invalid request."
         );
         // Check verification
-        if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $crypto = Crypto::init($m);
         $verification = $crypto->decrypt($data["verification"]);
         $verified = $verification && $verification["pid"] == $GLOBALS["Proj"]->project_id && $verification["userid"] == $GLOBALS["userid"];

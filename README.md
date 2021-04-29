@@ -4,7 +4,7 @@ A REDCap external module that provides action tags and plugin pages to enable pr
 
 ## Requirements
 
-- REDCAP 10.0.1 or newer (tested with REDCap 10.9.3).
+- REDCAP 10.0.1 or newer (tested with REDCap 10.9.4).
 - In order to preview or print labels, the computer running the browser that is used to access REDCap must have the _DYMO Connect Framework_ installed and the _DYMO WebService_ must be running. This is usually achieved by installing the [_DYMO Connect_](https://www.dymo.com) software package with default settings on this computer.
 
 ## Installation
@@ -80,7 +80,7 @@ A public GET endpoint (a web-address pointing to a plugin page provided by the _
 
 ## Public POST endpoint
 
-This feature has not been implemented yet. 
+This feature has not been implemented yet.
 
 Once available, it will provide a POST endpoint similar to the GET endpoint, but instead of url parameters, it will take a JSON payload as input which can bring its own label template.
 

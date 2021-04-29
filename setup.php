@@ -1,9 +1,7 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
-use DE\RUB\REDCapEMLib\Crypto;
-
-if (!class_exists("\DE\RUB\REDCapEMLib\Project")) include_once ("classes/Project.php");
-if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
+require_once ("classes/Crypto.php");
+require_once ("classes/Project.php");
 
 /**
  * This is setup plugin page

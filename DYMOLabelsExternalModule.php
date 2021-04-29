@@ -1,10 +1,11 @@
 <?php namespace DE\RUB\DYMOLabelsExternalModule;
 
-use DE\RUB\REDCapEMLib\Crypto;
 use Exception;
 use ExternalModules\AbstractExternalModule;
 use SimpleXMLElement;
 use Throwable;
+
+require_once ("classes/Crypto.php");
 
 /**
  * Provides an integration of DYMO LabelWriter printers with REDCap.
@@ -103,8 +104,6 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         if ($widgetNo > 0) {
             $fw = $this->framework;
 
-            if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
-
             // Ajax Setup (for calibration)
             $crypto = Crypto::init($this);
             $ajax = array(
@@ -200,9 +199,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
      * @return string A GUID under which the label is saved.
      */
     function addLabel($data) {
-        if (!class_exists("\DE\RUB\REDCapEMLib\Crypto")) include_once ("classes/Crypto.php");
         $guid = Crypto::getGuid();
-        
         $label = array(
             "id" => $guid,
             "name" => $data["name"],
