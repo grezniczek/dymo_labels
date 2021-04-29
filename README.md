@@ -22,7 +22,7 @@ Module behavior is controlled via External Module settings and labels are set up
 
 _DYMO Labels_ supports localization through the External Module translation framework. The following languages are included: English, German.
 
-### System-level settingss
+### System-level settings
 
 - _Block anonymous access to public plugin pages_ - When enabled, access to the plugin page that allows printing of labels set to be accessible in this manner on the  _DYMO Labels_ setup page (see below) is blocked.
 - _Disable POST endpoints (see docs)_ - When enabled, all access to the POST endpoint is blocked. More information about the POST endpoint can be found at the end of this README.
