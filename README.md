@@ -88,4 +88,5 @@ Once available, it will provide a POST endpoint similar to the GET endpoint, but
 
 Version | Description
 ------- | -----------------------
+v1.0.1  | Minor bug fixes.
 v1.0.0  | Initial release.
