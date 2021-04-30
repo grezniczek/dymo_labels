@@ -1540,6 +1540,10 @@ function setupLabels($container) {
                     $span.html(config.strings.removed)
                     $cell.append($span)
                     break
+                case 'PNG':
+                    var $icon = $('<i class="far fa-image fa-2x"></i>')
+                    $cell.append($icon)
+                    break
                 case 'DM':
                 case 'QR':
                     var $img = $('<img src="data:image/png;base64, ' + rows[row][col].png + '" />')
