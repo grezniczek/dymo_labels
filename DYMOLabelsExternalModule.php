@@ -327,7 +327,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         $labels = array();
         foreach ($settings as $key => $setting) {
             if (starts_with($key, "label-")) {
-                $labels[$setting["value"]["id"]] = $setting["value"];
+                $labels[$setting["id"]] = $setting;
             }
         }
         return $labels;

@@ -4,7 +4,7 @@ A REDCap external module that provides action tags and plugin pages to enable pr
 
 ## Requirements
 
-- REDCAP 10.0.1 or newer (tested with REDCap 10.9.4).
+- REDCAP 11.1.1 or newer (Framework v8 with CSRF protection).
 - In order to preview or print labels, the computer running the browser that is used to access REDCap must have the _DYMO Connect Framework_ installed and the _DYMO WebService_ must be running. This is usually achieved by installing the [_DYMO Connect_](https://www.dymo.com) software package with default settings on this computer.
 
 ## Installation
@@ -84,9 +84,15 @@ This feature has not been implemented yet.
 
 Once available, it will provide a POST endpoint similar to the GET endpoint, but instead of url parameters, it will take a JSON payload as input which can bring its own label template.
 
+## A note on CSRF protection
+
+This module has been updated to support REDCap's CSRF protection scheme (introduced in the EM Framework v8 in REDCap 11.1.1).
+Note that the public endpoints, due to them being _public_, are excempt from this CSRF protection scheme.
+
 ## Changelog
 
 Version | Description
 ------- | -----------------------
+v1.1.0  | Framework v8 support added (CSRF token support; requires REDCap 11.1.1).
 v1.0.1  | Minor bug fixes.
 v1.0.0  | Initial release.
