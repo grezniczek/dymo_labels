@@ -44,7 +44,7 @@ class setupPluginPage {
         $labels = $m->getLabels();
         
         $dataTables_json = dirname(__FILE__) . "/" . $fw->tt("setup_datatables");
-        $dataTables_json = file_exists($dataTables_json) ? file_get_contents($dataTables_json) : "";
+        $dataTables_json = is_file($dataTables_json) ? file_get_contents($dataTables_json) : "{}";
 
         // Prepare configuration data
         $configSettings = array(
