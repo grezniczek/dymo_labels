@@ -1010,7 +1010,7 @@ EM.DYMOLabelWidget_init = function(data) {
                     span.classList.forEach(function(className) {
                         if (className.startsWith(classStart)) {
                             var srcField = className.split('-')[2]
-                            var val = $('input[name="' + srcField + '"]').val()
+                            var val = $('input[name="' + srcField + '"]').val() || $('textarea[name="' + srcField + '"]').val()
                             // @ts-ignore
                             updatePipeReceivers(srcField, eventid, val)
                         }
