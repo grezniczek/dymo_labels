@@ -91,7 +91,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                             $val = ($loi["readOnly"] || !isset($widgetParams["data"][$loi["name"]])) ?
                                 $loi["default"] : $widgetParams["data"][$loi["name"]];
                             $val = \Piping::pipeSpecialTags($val, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
-                            $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
+                            $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, $record == null, false, $instrument, null, false, false, false);
                             $html .= "<span data-dlem-object=\"{$loi["name"]}\">{$val}</span>";
                         }
                         $html .= "</span></span>";
