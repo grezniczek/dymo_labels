@@ -1497,7 +1497,7 @@ function setupLabels($container) {
                     label.png = generateBarcode(label.value, 'datamatrix')
                     break
                 default:
-                    label.value = label.value.replace('\\n', '\n')
+                    label.value = label.value.replace(/\\n/g, '\n')
                     break
             }
             if (i == 0) {
