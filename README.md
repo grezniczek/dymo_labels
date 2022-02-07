@@ -93,6 +93,7 @@ Note that the public endpoints, due to them being _public_, are excempt from thi
 
 Version | Description
 ------- | -----------------------
+v1.1.2  | Piping bug fixes
 v1.1.1  | Bug fix (a JS error might occur under certain circumstances that prevented the setup page to function).
 v1.1.0  | Framework v8 support added (CSRF token support; requires REDCap 11.1.1).
 v1.0.1  | Minor bug fixes.
