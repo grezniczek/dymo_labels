@@ -51,7 +51,7 @@ class publicEndpoint
                 $key = strtoupper($key);
                 switch ($key) {
                     case 'TEMPLATE':
-                        $template = $value;
+                        $template = htmlentities($value);
                         break;
                     case 'AUTO':
                         $auto = true;
