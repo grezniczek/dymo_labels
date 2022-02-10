@@ -293,7 +293,7 @@ function showInfo(label) {
     }, function(infoDH, verb) {
         return new Promise(function (resolve, reject) {
             // Copy to clipboard
-            if (verb.substr(0, 5) == 'copy-') {
+            if (verb.substring(0, 5) == 'copy-') {
                 try {
                     /** @type {HTMLInputElement} */ // @ts-ignore
                     var el = verb == 'copy-tag' ?
@@ -996,7 +996,19 @@ EM.DYMOLabelWidget_init = function(data) {
         var field = $widget.attr('data-dlem-field')
         var target = $widget.attr('data-dlem-target')
         var eventid = $widget.attr('data-dlem-eventid')
-        var classStart = 'piperec-' + eventid + '-'
+        var prStart = 'piperec-' + eventid + '-'
+        var classStart = 'dlem-' + prStart
+        // Remove piping_receiver class from widget in order to not have REDCap update - we do it ourselves
+        $widget.find('.piping_receiver').each(function() {
+            var $pr = $(this)
+            for (var c of this.classList) {
+                if (c.startsWith(prStart)) {
+                    const nc = c.replace(prStart, classStart)
+                    $pr.removeClass(c).removeClass('piping_receiver')
+                    $pr.addClass(nc).addClass('dlem-receiver')
+                }
+            }
+        })
         var $target = target == '' ? $('tr[sq_id="' + field + '"] td.labelrc') : $(target)
         if ($target.length) {
             $target.append($widget)
@@ -1005,15 +1017,16 @@ EM.DYMOLabelWidget_init = function(data) {
                 e.preventDefault()
                 $btn.prop('disabled', true)
                 $btn.find('.when-disabled').prop('hidden', false)
-                $widget.find('.piping_receiver').each(function() {
+                $widget.find('.dlem-receiver').each(function() {
                     var span = this
                     span.classList.forEach(function(className) {
                         if (className.startsWith(classStart)) {
-                            var srcField = className.split('-')[2]
+                            var srcField = className.split('-')[3]
                             var val = $('input[name="' + srcField + '"]').val() || $('textarea[name="' + srcField + '"]').val() || ''
                             val = val.toString().replace(/</g, '&lt;')
-                            // @ts-ignore
-                            updatePipeReceivers(srcField, eventid, val)
+                            $widget.find('.' + classStart + srcField).html(val);
+                            $widget.find('.' + classStart + srcField + '-value').html(val);
+                            $widget.find('.' + classStart + srcField + '-label').html(val);
                         }
                     })
                 })
@@ -1169,10 +1182,24 @@ function createLabel(template, search, replace) {
         label.push({
             name: item.name,
             type: item.type,
-            value: item.value.replace(search, replace),
+            value: unescapeHTML(item.value).replace(search, replace),
         })
     })
     return label
+}
+
+/**
+ * Reverses htmlentities(s, ENT_QUOTES), for calls via public.php only
+ * @param {string} s 
+ * @returns {string}
+ */
+function unescapeHTML(s) {
+    // Check if this is run via the public endpoint. If so, then unescaping is necessary
+    if (config.hasOwnProperty('public')) {
+        const doc = new DOMParser().parseFromString(s, 'text/html')
+        return doc.documentElement.textContent
+    }
+    return s
 }
 
 EM.DYMOLabelPrint_init = function(data) {
@@ -1498,7 +1525,7 @@ function setupLabels($container) {
                     label.png = generateBarcode(label.value, 'datamatrix')
                     break
                 default:
-                    label.value = label.value.replace(/\\n/g, '\n')
+                    label.value = unescapeHTML(label.value).replace(/\\n/g, '\n')
                     break
             }
             if (i == 0) {
@@ -1613,7 +1640,7 @@ function generateBarcode(val, type, rot = 'N') {
         bwipjs.toCanvas(canvas, options)
         var dataUrl = canvas.toDataURL('image/png')
         // Remove 'data:image/png;base64,'
-        var png = dataUrl.substr(dataUrl.indexOf(',') + 1).trim()
+        var png = dataUrl.substring(dataUrl.indexOf(',') + 1).trim()
         return png
     }
     catch (e) {
@@ -1629,7 +1656,7 @@ function emptyPng() {
     /** @type {HTMLCanvasElement} */
     var canvas = document.createElement('canvas')
     var png = canvas.toDataURL('image/png')
-    png = png.substr(png.indexOf(',') + 1).trim()
+    png = png.substring(png.indexOf(',') + 1).trim()
     return png;
 }
 
@@ -1857,7 +1884,7 @@ function prepareLabelXml(labelData, calData) {
                     regex.lastIndex++;
                 }
                 m.forEach(function(match, groupIndex) {
-                    var replace = match.substr(0, match.length - 2) + '></' + element + '>'
+                    var replace = match.substring(0, match.length - 2) + '></' + element + '>'
                     xml = xml.replace(match, replace)
                 })
             }

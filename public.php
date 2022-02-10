@@ -51,7 +51,7 @@ class publicEndpoint
                 $key = strtoupper($key);
                 switch ($key) {
                     case 'TEMPLATE':
-                        $template = htmlentities($value);
+                        $template = htmlentities($value, ENT_QUOTES);
                         break;
                     case 'AUTO':
                         $auto = true;
@@ -91,7 +91,7 @@ class publicEndpoint
                             $kvPair = array(
                                 "name" => $name,
                                 "type" => $type,
-                                "value" => $pvalue,
+                                "value" => htmlentities($pvalue, ENT_QUOTES),
                             );
                             array_push($kvPairs, $kvPair);
                         }
@@ -193,6 +193,7 @@ class publicEndpoint
 
         // Prepare configuration data
         $configSettings = array(
+            "public" => true,
             "debug" => $fw->getProjectSetting("js-debug") == true,
             "canDownload" => false,
             "ajax" => $ajax,

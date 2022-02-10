@@ -93,6 +93,7 @@ Note that the public endpoints, due to them being _public_, are excempt from thi
 
 Version | Description
 ------- | -----------------------
+v1.1.5  | Enhanced piping support.
 v1.1.4  | Minor security fix.
 v1.1.3  | Security fix (possible code injection when REDCap fields are used as source).
 v1.1.2  | Piping bug fixes.
