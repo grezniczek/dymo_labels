@@ -4,20 +4,12 @@
 			"path": "."
 		},
 		{
-			"name": "redcap_emlib",
-			"path": "..\\..\\..\\libs\\redcap_emlib"
-		},
-		{
 			"path": "..\\..\\external_modules",
 			"name": "EM Framework"
 		},
 		{
 			"path": "..\\..\\codebase",
 			"name": "REDCap"
-		},
-		{
-			"name": "dymo-connect-framework",
-			"path": "..\\..\\..\\libs\\dymo-connect-framework"
 		}
 	],
 	"settings": {}
