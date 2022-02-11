@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<psalm>
+    <projectFiles>
+        <file name="auth-ajax.php" />
+        <file name="DYMOLabelsExternalModule.php" />
+        <file name="post.php" />
+        <file name="public.php" />
+        <file name="public-ajax.php" />
+        <file name="setup-modals.php" />
+        <file name="setup-page.php" />
+        <file name="setup.php" />
+        <file name="widget-modals.php" />
+        <directory name="classes" />
+    </projectFiles>
+</psalm>
