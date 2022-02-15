@@ -13,43 +13,50 @@ require_once ("classes/Crypto.php");
 class DYMOLabelsExternalModule extends AbstractExternalModule {
 
     const atDymoLabel = "@DYMO-LABEL";
+    /**
+     * EM Framework (tooling support)
+     * @var \ExternalModules\Framework
+     */
+    private $fw;
+
+    function __construct() {
+        parent::__construct();
+        $this->fw = $this->framework;
+    }
 
     /**
      * Control whether the plugin link is displayed.
      */
     function redcap_module_link_check_display($project_id, $link) {
-        $fw = $this->framework;
         // Only show the link for the integrated plugin.
         // The 'show-link' setting shall not apply to super users.
-        return ($link["id"] == "setup" && $project_id != null && (SUPER_USER || $fw->getProjectSetting("show-link"))) ? $link : null;
+        return ($link["id"] == "setup" && $project_id != null && ($this->fw->getUser()->isSuperUser() || $this->fw->getProjectSetting("show-link"))) ? $link : null;
     }
-
 
     /**
      * Set module default settings when the module is enabled.
      */
     function redcap_module_project_enable($version, $project_id) {
-        $fw = $this->framework;
         // Set default configuration.
         if ($project_id == null) {
             // System.
-            if ($fw->getSystemSetting("system-block-public") == null) {
-                $fw->setSystemSetting("system-block-public", false);
+            if ($this->fw->getSystemSetting("system-block-public") == null) {
+                $this->fw->setSystemSetting("system-block-public", false);
             }
-            if ($fw->getSystemSetting("system-disable-post") == null) {
-                $fw->setSystemSetting("system-disable-post", true);
+            if ($this->fw->getSystemSetting("system-disable-post") == null) {
+                $this->fw->setSystemSetting("system-disable-post", true);
             }
         }
         else {
             // Project 
-            if ($fw->getProjectSetting("show-link") == null) {
-                $fw->setProjectSetting("show-link", true);
+            if ($this->fw->getProjectSetting("show-link") == null) {
+                $this->fw->setProjectSetting("show-link", true);
             }
-            if ($fw->getProjectSetting("allow-public") == null) {
-                $fw->setProjectSetting("allow-public", false);
+            if ($this->fw->getProjectSetting("allow-public") == null) {
+                $this->fw->setProjectSetting("allow-public", false);
             }
-            if ($fw->getProjectSetting("allow-download") == null) {
-                $fw->setProjectSetting("allow-download", true);
+            if ($this->fw->getProjectSetting("allow-download") == null) {
+                $this->fw->setProjectSetting("allow-download", true);
             }
         }
     }
@@ -102,8 +109,6 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         }
         $html .= "</div>\n";
         if ($widgetNo > 0) {
-            $fw = $this->framework;
-
             // Ajax Setup (for calibration)
             $crypto = Crypto::init($this);
             $ajax = array(
@@ -113,7 +118,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                     "pid" => $project_id,
                     "timestamp" => time(),
                 )),
-                "endpoint" => $fw->getUrl("public-ajax.php", true)
+                "endpoint" => $this->fw->getUrl("public-ajax.php", true)
             );
 
             // Output widget(s) html
@@ -123,10 +128,10 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             $this->includeJS("js/3rd-party/bwip-js-min.js"); // TODO - Inline for survey
             $this->includeJS("js/dlem.js"); // TODO - Inline for survey
             $settings = array(
-                "debug" => $fw->getProjectSetting("js-debug") == true,
+                "debug" => $this->fw->getProjectSetting("js-debug") == true,
                 "ajax" => $ajax,
                 "canDownload" => false,
-                "widgetEndpoint" => $fw->getUrl("public.php", true),
+                "widgetEndpoint" => $this->fw->getUrl("public.php", true),
                 "eventId" => $event_id * 1,
                 "labels" => $usedLabels,
                 "skipPrinting" => $this->getProjectSetting("skip-printing") == true,
