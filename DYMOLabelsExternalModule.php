@@ -12,17 +12,8 @@ require_once ("classes/Crypto.php");
  */
 class DYMOLabelsExternalModule extends AbstractExternalModule {
 
-    const atDymoLabel = "@DYMO-LABEL";
-    /**
-     * EM Framework (tooling support)
-     * @var \ExternalModules\Framework
-     */
-    private $fw;
-
-    function __construct() {
-        parent::__construct();
-        $this->fw = $this->framework;
-    }
+    const atPrintLabel = "@PRINT-LABEL";
+    const atPrintLabelLegacy = "@DYMO-LABEL";
 
     /**
      * Control whether the plugin link is displayed.
@@ -30,7 +21,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
     function redcap_module_link_check_display($project_id, $link) {
         // Only show the link for the integrated plugin.
         // The 'show-link' setting shall not apply to super users.
-        return ($link["id"] == "setup" && $project_id != null && ($this->fw->getUser()->isSuperUser() || $this->fw->getProjectSetting("show-link"))) ? $link : null;
+        return ($link["id"] == "setup" && $project_id != null && ($this->framework->getUser()->isSuperUser() || $this->framework->getProjectSetting("show-link"))) ? $link : null;
     }
 
     /**
@@ -40,23 +31,23 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         // Set default configuration.
         if ($project_id == null) {
             // System.
-            if ($this->fw->getSystemSetting("system-block-public") == null) {
-                $this->fw->setSystemSetting("system-block-public", false);
+            if ($this->framework->getSystemSetting("system-block-public") == null) {
+                $this->framework->setSystemSetting("system-block-public", false);
             }
-            if ($this->fw->getSystemSetting("system-disable-post") == null) {
-                $this->fw->setSystemSetting("system-disable-post", true);
+            if ($this->framework->getSystemSetting("system-disable-post") == null) {
+                $this->framework->setSystemSetting("system-disable-post", true);
             }
         }
         else {
             // Project 
-            if ($this->fw->getProjectSetting("show-link") == null) {
-                $this->fw->setProjectSetting("show-link", true);
+            if ($this->framework->getProjectSetting("show-link") == null) {
+                $this->framework->setProjectSetting("show-link", true);
             }
-            if ($this->fw->getProjectSetting("allow-public") == null) {
-                $this->fw->setProjectSetting("allow-public", false);
+            if ($this->framework->getProjectSetting("allow-public") == null) {
+                $this->framework->setProjectSetting("allow-public", false);
             }
-            if ($this->fw->getProjectSetting("allow-download") == null) {
-                $this->fw->setProjectSetting("allow-download", true);
+            if ($this->framework->getProjectSetting("allow-download") == null) {
+                $this->framework->setProjectSetting("allow-download", true);
             }
         }
     }
@@ -67,42 +58,43 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
         if (!class_exists("ActionTagHelper")) require_once("classes/ActionTagHelper.php");
         $labels = $this->getLabels();
         $usedLabels = array();
-        $tags = ActionTagHelper::getActionTags([ self::atDymoLabel ], null, [ $instrument ]);
+        $tags = ActionTagHelper::getActionTags([ self::atPrintLabel, self::atPrintLabelLegacy ], null, [ $instrument ]);
         // Construct widget HTML
         $html = "<!-- DYMO Labels EM -->\n<div style=\"display:none;\">";
         $widgetNo = 0;
         if (count($tags)) {
-            foreach ($tags[self::atDymoLabel] as $field => $params) {
-                foreach ($params as $json) {
-                    $widgetParams = json_decode($json, true);
-                    if ($widgetParams && isset($labels[$widgetParams["id"]])) {
-                        $id = $widgetParams["id"];
-                        $label = $labels[$id];
-                        $usedLabels[$id] = $labels[$id];
-                        $widgetNo++;
-                        $button_label = strlen(trim($widgetParams["button"])) ? trim($widgetParams["button"]) : $this->tt("widget_label");
-                        $button_style = isset($widgetParams["style"]) ? trim($widgetParams["style"]) : "margin-bottom:0.5rem;";
-                        $button_class = isset($widgetParams["class"]) ? " ".trim($widgetParams["class"]) : "";
-                        $range = strlen(trim($widgetParams["range"])) ? trim($widgetParams["range"]) : "";
-                        $auto = " data-dlem-auto=\"" . ((isset($widgetParams["auto"]) && $widgetParams["auto"] == true) ? "1" : "0") . "\"";
-                        if (strlen($range)) {
-                            $range = \Piping::pipeSpecialTags($range, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
-                            $range = \Piping::replaceVariablesInLabel($range, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
+            foreach ($tags as $taggedFields) {
+                foreach ($taggedFields as $field => $params) {
+                    foreach ($params as $json) {
+                        $widgetParams = json_decode($json, true);
+                        if ($widgetParams && isset($labels[$widgetParams["id"]])) {
+                            $id = $widgetParams["id"];
+                            $label = $labels[$id];
+                            $usedLabels[$id] = $labels[$id];
+                            $widgetNo++;
+                            $button_label = strlen(trim($widgetParams["button"])) ? trim($widgetParams["button"]) : $this->tt("widget_label");
+                            $button_style = isset($widgetParams["style"]) ? trim($widgetParams["style"]) : "margin-bottom:0.5rem;";
+                            $button_class = isset($widgetParams["class"]) ? " ".trim($widgetParams["class"]) : "";
+                            $range = strlen(trim($widgetParams["range"])) ? trim($widgetParams["range"]) : "";
+                            $auto = " data-dlem-auto=\"" . ((isset($widgetParams["auto"]) && $widgetParams["auto"] == true) ? "1" : "0") . "\"";
+                            if (strlen($range)) {
+                                $range = \Piping::pipeSpecialTags($range, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
+                                $range = \Piping::replaceVariablesInLabel($range, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, false, false, $instrument, null, false, false, false);
+                            }
+                            $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-label=\"{$id}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\" data-dlem-eventid=\"{$event_id}\"{$auto}>";
+                            $html .= "<button class=\"btn btn-primary btn-sm{$button_class}\" style=\"{$button_style}\">{$button_label}<span class=\"when-disabled\" hidden> <i class=\"fas fa-spinner fa-spin\"></i></span></button>";
+                            $html .= "<span style=\"display:none;\">";
+                            $html .= "<span data-dlem-range>{$range}</span>";
+                            foreach($label["config"]["objects"] as $loi) {
+                                if ($loi["transform"] == "R") continue;
+                                $val = ($loi["readOnly"] || !isset($widgetParams["data"][$loi["name"]])) ?
+                                    $loi["default"] : $widgetParams["data"][$loi["name"]];
+                                $val = \Piping::pipeSpecialTags($val, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
+                                $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, $record == null, false, $instrument, null, false, false, false);
+                                $html .= "<span data-dlem-object=\"{$loi["name"]}\">{$val}</span>";
+                            }
+                            $html .= "</span></span>";
                         }
-                        $html .= "<span data-dlem-print-widget=\"{$widgetNo}\" data-dlem-label=\"{$id}\" data-dlem-field=\"{$field}\" data-dlem-target=\"{$widgetParams["target"]}\" data-dlem-eventid=\"{$event_id}\"{$auto}>";
-                        $html .= "<button class=\"btn btn-primary btn-sm{$button_class}\" style=\"{$button_style}\">{$button_label}<span class=\"when-disabled\" hidden> <i class=\"fas fa-spinner fa-spin\"></i></span></button>";
-                        $html .= "<span style=\"display:none;\">";
-                        $html .= "<span data-dlem-range>{$range}</span>";
-                        foreach($label["config"]["objects"] as $loi) {
-                            if ($loi["transform"] == "R") continue;
-                            $val = ($loi["readOnly"] || !isset($widgetParams["data"][$loi["name"]])) ?
-                                $loi["default"] : $widgetParams["data"][$loi["name"]];
-                            $val = \Piping::pipeSpecialTags($val, $project_id, $record, $event_id, $repeat_instance, null, false, null, $instrument, false, false);
-                            $val = \Piping::replaceVariablesInLabel($val, $record, $event_id, $repeat_instance, null, false, $project_id, true, "", 1, $record == null, false, $instrument, null, false, false, false);
-                            $html .= "<span data-dlem-object=\"{$loi["name"]}\">{$val}</span>";
-                        }
-                        $html .= "</span></span>";
-                        // $html = str_replace("\n", "<br>", $html);
                     }
                 }
             }
@@ -118,7 +110,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
                     "pid" => $project_id,
                     "timestamp" => time(),
                 )),
-                "endpoint" => $this->fw->getUrl("public-ajax.php", true)
+                "endpoint" => $this->framework->getUrl("public-ajax.php", true)
             );
 
             // Output widget(s) html
@@ -128,10 +120,10 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             $this->includeJS("js/3rd-party/bwip-js-min.js"); // TODO - Inline for survey
             $this->includeJS("js/dlem.js"); // TODO - Inline for survey
             $settings = array(
-                "debug" => $this->fw->getProjectSetting("js-debug") == true,
+                "debug" => $this->framework->getProjectSetting("js-debug") == true,
                 "ajax" => $ajax,
                 "canDownload" => false,
-                "widgetEndpoint" => $this->fw->getUrl("public.php", true),
+                "widgetEndpoint" => $this->framework->getUrl("public.php", true),
                 "eventId" => $event_id * 1,
                 "labels" => $usedLabels,
                 "skipPrinting" => $this->getProjectSetting("skip-printing") == true,

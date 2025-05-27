@@ -1,5 +1,5 @@
 {
-    "name": "DYMO Labels",
+    "name": "Label Printing (DYMO Integration)",
     "tt_name": "module_name",
     "namespace": "DE\\RUB\\DYMOLabelsExternalModule",
     "description": "An external module integrating DYMO label printers with REDCap.",
@@ -8,24 +8,21 @@
     "tt_documentation": "module_docs",
     "authors": [
         {
+        
             "name": "Günther Rezniczek",
             "email": "guenther.rezniczek@rub.de",
             "institution": "Ruhr-Universität Bochum"
         }
     ],
-    "framework-version": 8,
-    "permissions": [
-        "redcap_module_project_enable",
-        "redcap_data_entry_form"
-    ],
+    "framework-version": 16,
     "enable-every-page-hooks-on-system-pages": true,
     "links": {
         "project": [
             {
                 "id": "setup",
-                "name": "DYMO Labels",
+                "name": "Label Printing Setup",
                 "tt_name": "link_name",
-                "icon": "fas fa-tags",
+                "icon": "fa-solid fa-tags",
                 "url": "setup.php",
                 "show-header-and-footer": true
             }
@@ -43,8 +40,9 @@
     ],
     "action-tags": [
         {
-            "key": "dymo-label",
-            "name": "@DYMO-LABEL"
+            "tag": "@PRINT-LABEL",
+            "description": "Displays a print button for generating labels based on a configurable JSON template. Labels are filled dynamically using field values (via piping) and printed via the DYMO Label Framework. The JSON parameter must include an <code>id</code> (label ID), and can optionally define the button label, CSS classes, inline style, range expansions, and automatic printing. To set up your label template and obtain a valid JSON configuration, use the <b>Setup Print Labels</b> plugin page. <i>Full details are available in the module's documentation.</i>",
+            "tt_description": "config_print_label"
         }
     ],
     "system-settings": [
@@ -104,11 +102,5 @@
             "tt_name": "config_allow_auto",
             "type": "checkbox"
         }
-    ],
-    "compatibility": {
-        "php-version-min": "5.6.0",
-        "php-version-max": "",
-        "redcap-version-min": "11.1.1",
-        "redcap-version-max": ""
-     }
+    ]
 }
