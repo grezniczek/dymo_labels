@@ -1,4 +1,4 @@
-/* DYMO Label External Module */
+/* Label Printing (DYMO Integration) External Module */
 // @ts-check
 ;(function() {
 
@@ -767,7 +767,7 @@ function log() {
         ln = parts[parts.length - 2]
     }
     catch { }
-    var prompt = 'DYMO Label EM [' + ln + ']'
+    var prompt = 'Label Printing (DYMO Integration) EM [' + ln + ']'
     switch(arguments.length) {
         case 1: 
             console.log(prompt, arguments[0])
