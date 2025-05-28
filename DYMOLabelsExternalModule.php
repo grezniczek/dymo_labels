@@ -133,6 +133,7 @@ class DYMOLabelsExternalModule extends AbstractExternalModule {
             );
             print "<script>$(function() { window.ExternalModules.DYMOLabelWidget_init(" . json_encode($settings) . "); });</script>";
 
+            $fw = $this->framework; // used in widget-modals
             include("widget-modals.php");
         }
     }
